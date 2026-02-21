@@ -35,7 +35,7 @@ jobs:
           
           # 2. Copy and rename your specific file to index.html
           # ⚠️ REPLACE 'my_custom_page.html' WITH YOUR ACTUAL FILE NAME
-          cp neuvector_viz.html _site/index.html
+          cp neuvector-viz.html _site/index.html
           
           # 3. (Optional) Copy any other assets you need like CSS or images
           # cp -r css/ _site/css/
