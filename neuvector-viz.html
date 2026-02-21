@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuVector Network Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            margin: 0; overflow: hidden; 
+            background-color: #f8fafc; color: #0f172a; 
+            font-family: ui-sans-serif, system-ui, sans-serif; 
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body.dark-mode { 
+            background-color: #030712; color: white; 
+        }
+
+        canvas { display: block; }
+        
+        .bg-grid {
+            background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .dark-mode .bg-grid {
+            background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        }
+
+        .bg-radial { background: radial-gradient(circle at center, transparent 0%, #f8fafc 100%); opacity: 0.9; }
+        .dark-mode .bg-radial { background: radial-gradient(circle at center, transparent 0%, #030712 100%); opacity: 0.9; }
+
+        .glass-panel { 
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(203, 213, 225, 0.5); 
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .dark-mode .glass-panel { 
+            background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(51, 65, 85, 0.5); 
+        }
+
+        .btn-hover:hover { background: rgba(0,0,0,0.05); }
+        .dark-mode .btn-hover:hover { background: rgba(255,255,255,0.1); }
+        
+        .text-muted { color: #64748b; }
+        .dark-mode .text-muted { color: #94a3b8; }
+        
+        .mode-btn { position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: #475569; }
+        .dark-mode .mode-btn { color: #cbd5e1; }
+        .mode-btn:hover { transform: translateY(-2px); }
+        
+        .mode-btn.active { box-shadow: 0 0 20px rgba(0,0,0,0.1); background: rgba(255,255,255,0.9); }
+        .dark-mode .mode-btn.active { box-shadow: 0 0 20px rgba(0,0,0,0.5); background: rgba(30, 41, 59, 0.8); }
+
+        /* Custom Range Slider */
+        input[type=range] { -webkit-appearance: none; background: transparent; height: 4px; border-radius: 2px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #06b6d4; cursor: pointer; }
+        input[type=range]::-moz-range-thumb { border: none; height: 16px; width: 16px; border-radius: 50%; background: #06b6d4; cursor: pointer; }
+        input[type=range]::-webkit-slider-runnable-track { background: #cbd5e1; border-radius: 2px; }
+        .dark-mode input[type=range]::-webkit-slider-runnable-track { background: #334155; }
+
+        /* Logo Inversions */
+        .brand-logo-suse { transition: filter 0.3s; filter: invert(1); }
+        .dark-mode .brand-logo-suse { filter: none; }
+        
+        .brand-logo-nv { transition: filter 0.3s; filter: none; }
+        .dark-mode .brand-logo-nv { filter: brightness(0) invert(1); }
+    </style>
+</head>
+<body class="dark-mode">
+
+    <!-- UI Overlay -->
+    <div class="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+        
+        <div class="absolute inset-0 bg-grid z-[-1]"></div>
+        <div class="absolute inset-0 bg-radial z-[-1]"></div>
+
+        <!-- Stats Panel -->
+        <div id="statsPanel" class="absolute top-6 left-6 pointer-events-none flex flex-col gap-3 z-20 transition-opacity duration-300">
+            <div class="glass-panel px-4 py-3 rounded-xl shadow-lg flex items-center gap-4 min-w-[220px]">
+                <div class="bg-cyan-500/20 text-cyan-500 p-2 rounded-lg">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                </div>
+                <div>
+                    <div class="text-[10px] text-muted font-bold uppercase tracking-widest">Rules Learned</div>
+                    <div id="countRules" class="text-xl font-black text-cyan-500 font-mono">0</div>
+                </div>
+            </div>
+            <div class="glass-panel px-4 py-3 rounded-xl shadow-lg flex items-center gap-4 min-w-[220px]">
+                <div class="bg-blue-500/20 text-blue-500 p-2 rounded-lg">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                </div>
+                <div>
+                    <div class="text-[10px] text-muted font-bold uppercase tracking-widest">Traffic Monitored</div>
+                    <div id="countMonitored" class="text-xl font-black text-blue-500 font-mono">0</div>
+                </div>
+            </div>
+            <div class="glass-panel px-4 py-3 rounded-xl shadow-lg flex items-center gap-4 min-w-[220px]">
+                <div class="bg-amber-500/20 text-amber-500 p-2 rounded-lg">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </div>
+                <div>
+                    <div class="text-[10px] text-muted font-bold uppercase tracking-widest">Alerts Generated</div>
+                    <div id="countAlerts" class="text-xl font-black text-amber-500 font-mono">0</div>
+                </div>
+            </div>
+            <div class="glass-panel px-4 py-3 rounded-xl shadow-lg flex items-center gap-4 min-w-[220px]">
+                <div class="bg-emerald-500/20 text-emerald-500 p-2 rounded-lg">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                </div>
+                <div>
+                    <div class="text-[10px] text-muted font-bold uppercase tracking-widest">Attacks Blocked</div>
+                    <div id="countBlocked" class="text-xl font-black text-emerald-500 font-mono">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Logos -->
+        <div class="absolute bottom-8 left-8 pointer-events-auto z-20 flex flex-col gap-5 items-start">
+            <a href="https://www.suse.com/products/rancher/security/" target="_blank" class="hover:scale-105 transition-transform" title="Visit SUSE Security">
+                <img src="https://cdn.bfldr.com/FQEVVFCB/at/xvznjfpbttq6x6ftc2sh9tw/SUSE_Security_neg-white-horizontal.svg?auto=webp&format=svg" alt="SUSE Security" class="w-40 opacity-80 brand-logo-suse" />
+            </a>
+            <a href="https://open-docs.neuvector.com/" target="_blank" class="hover:scale-105 transition-transform" title="Visit NeuVector Docs">
+                <img src="https://open-docs.neuvector.com/img/logo.svg" alt="NeuVector" class="w-32 opacity-80 brand-logo-nv" />
+            </a>
+        </div>
+
+        <!-- Controls -->
+        <div class="absolute top-6 right-6 pointer-events-auto flex gap-3">
+            <button id="themeToggleBtn" class="glass-panel btn-hover p-3 rounded-xl transition-colors shadow-lg group" title="Toggle Light/Dark Mode">
+                <svg class="sun-icon hidden group-hover:rotate-45 transition-transform" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <svg class="moon-icon group-hover:rotate-12 transition-transform" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+
+            <button id="fullscreenBtn" class="glass-panel btn-hover p-3 rounded-xl transition-colors shadow-lg group" title="Toggle Fullscreen">
+                <svg class="enter-fs-icon group-hover:scale-110 transition-transform" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                <svg class="exit-fs-icon hidden group-hover:scale-90 transition-transform" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>
+            </button>
+
+            <button id="recenterBtn" class="glass-panel btn-hover p-3 rounded-xl transition-colors shadow-lg group" title="Recenter Camera">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:scale-110 transition-transform"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            </button>
+
+            <button id="arrangeBtn" class="glass-panel btn-hover p-3 rounded-xl transition-colors shadow-lg group" title="Auto-Arrange Layout">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:rotate-12 transition-transform"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </button>
+            
+            <button id="toggleSettingsBtn" class="glass-panel btn-hover p-3 rounded-xl transition-colors shadow-lg group" title="Settings">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:rotate-90 transition-transform"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+
+            <div id="settingsPanel" class="hidden absolute top-14 right-0 glass-panel p-6 rounded-2xl shadow-2xl w-80">
+                <h3 class="text-lg font-bold mb-6 border-b border-slate-700/50 pb-3 text-cyan-500">Visualizer Setup</h3>
+                <div class="space-y-5">
+                    <div>
+                        <label class="flex justify-between text-sm text-muted mb-2 font-medium">Namespaces <span id="valNs" class="font-bold">3</span></label>
+                        <input type="range" id="sliderNs" min="1" max="5" value="3" class="w-full">
+                    </div>
+                    <div>
+                        <label class="flex justify-between text-sm text-muted mb-2 font-medium">Total Pods <span id="valPods" class="font-bold">6</span></label>
+                        <input type="range" id="sliderPods" min="2" max="25" value="6" class="w-full">
+                    </div>
+                    <div>
+                        <label class="flex justify-between text-sm text-muted mb-2 font-medium">Camera Zoom <span id="valZoom" class="font-bold">1.0x</span></label>
+                        <input type="range" id="sliderZoom" min="0.4" max="3.0" step="0.1" value="1.0" class="w-full">
+                    </div>
+                    
+                    <div class="border-t border-slate-700/50 pt-4 mt-2 space-y-3">
+                        <label class="flex items-center justify-between cursor-pointer group">
+                            <span class="text-sm font-medium text-muted group-hover:text-cyan-400 transition-colors">Auto-Rotate Modes</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" id="toggleAutoRotate" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-slate-400 appearance-none cursor-pointer transition-transform duration-300 ease-in-out z-10" />
+                                <div class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-400 cursor-pointer transition-colors duration-300 ease-in-out"></div>
+                            </div>
+                        </label>
+                        
+                        <div id="rotateIntervalContainer" class="hidden pl-2 pb-2">
+                            <label class="flex justify-between text-xs text-muted mb-2 font-medium">Rotation Interval <span id="valRotateInterval" class="font-bold">10s</span></label>
+                            <input type="range" id="sliderRotateInterval" min="2" max="30" value="10" step="1" class="w-full">
+                        </div>
+
+                        <label class="flex items-center justify-between cursor-pointer group">
+                            <span class="text-sm font-medium text-muted group-hover:text-cyan-400 transition-colors">Show Statistics</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" id="toggleStats" checked class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-slate-400 appearance-none cursor-pointer transition-transform duration-300 ease-in-out z-10" />
+                                <div class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-400 cursor-pointer transition-colors duration-300 ease-in-out"></div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center justify-between cursor-pointer group">
+                            <span class="text-sm font-medium text-muted group-hover:text-cyan-400 transition-colors">Show Explanations</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" id="toggleExplanations" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-slate-400 appearance-none cursor-pointer transition-transform duration-300 ease-in-out z-10" />
+                                <div class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-400 cursor-pointer transition-colors duration-300 ease-in-out"></div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mode Switcher -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 pointer-events-auto">
+            <div class="glass-panel p-2 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.2)] flex items-center gap-2" id="modeContainer">
+                <!-- Modes injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Simulation Canvas -->
+    <canvas id="simCanvas"></canvas>
+
+<style>
+    /* Styling for the custom switch toggles */
+    .toggle-checkbox:checked { right: 0; border-color: #06b6d4; }
+    .toggle-checkbox:checked + .toggle-label { background-color: #06b6d4; }
+    .toggle-checkbox:not(:checked) { right: 20px; }
+</style>
+
+<script>
+/**
+ * Core Architecture: Pure HTML5 Canvas + Vanilla JS
+ * Native Canvas Camera (Pan & Zoom) + Optimized Grid Packing
+ */
+
+// --- Constants & Config ---
+const START_X = 150;
+const ENFORCER_X = 550;
+
+const BLOCK_REASONS = ['SQL Injection (OWASP)', 'Cross-Site Scripting (OWASP)', 'Broken Access Control', 'SSRF Attempt', 'SYN Flood Attack', 'DDoS Pattern Detected', 'DLP Pattern Detected', 'CVE-2024-3450 Exploit', 'Lateral Movement Blocked'];
+const NS_TEMPLATES = [
+    { name: 'Frontend', color: '#3b82f6' },
+    { name: 'API-Gateway', color: '#a855f7' },
+    { name: 'Database', color: '#10b981' },
+    { name: 'Analytics', color: '#f43f5e' },
+    { name: 'Cache', color: '#eab308' }
+];
+
+const MODES = {
+    discover: { id: 'discover', name: 'Discover', color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.1)', desc: 'Learning baseline behavior automatically.' },
+    monitor:  { id: 'monitor', name: 'Monitor', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', desc: 'Alerting on anomalies without dropping.' },
+    protect:  { id: 'protect', name: 'Protect', color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)', desc: 'Actively blocking unauthorized threats.' }
+};
+
+// --- State ---
+let state = {
+    mode: 'discover',
+    isDark: true,
+    autoRotate: false,
+    rotateInterval: 10,
+    showExplanations: false,
+    showStats: true,
+    stats: { rules: 0, monitored: 0, blocked: 0, alerts: 0 },
+    modeTimer: 0,
+    zoom: 1.0,
+    pan: { x: 50, y: 50 }, 
+    nsCount: 3,
+    podCount: 6,
+    namespaces: [], 
+    nodes: [],      
+    packets: [],
+    particles: [],
+    texts: [],
+    lastTime: 0,
+    packetTimer: 0,
+    drag: null      
+};
+
+// Theme Helper
+const getTheme = () => state.isDark ? {
+    textMain: '#cbd5e1', textMuted: '#64748b', wireframe: '#475569', 
+    internetBg: '#0f172a', internetBorder: '#334155', globe: '#94a3b8',
+    nodeBg: '#0f172a', nodeBorder: '#475569', nodeText1: '#e2e8f0', nodeText2: '#94a3b8',
+    boxBg: 'rgba(15,23,42,0.85)', boxBgSolid: 'rgba(15,23,42,0.95)'
+} : {
+    textMain: '#0f172a', textMuted: '#64748b', wireframe: '#cbd5e1', 
+    internetBg: '#ffffff', internetBorder: '#cbd5e1', globe: '#64748b',
+    nodeBg: '#ffffff', nodeBorder: '#cbd5e1', nodeText1: '#0f172a', nodeText2: '#475569',
+    boxBg: 'rgba(255,255,255,0.85)', boxBgSolid: 'rgba(255,255,255,0.95)'
+};
+
+// --- DOM Elements ---
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d');
+
+// Control Binding
+document.getElementById('toggleSettingsBtn').addEventListener('click', () => {
+    document.getElementById('settingsPanel').classList.toggle('hidden');
+});
+
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+});
+
+document.addEventListener('fullscreenchange', () => {
+    const isFs = !!document.fullscreenElement;
+    document.querySelector('.enter-fs-icon').classList.toggle('hidden', isFs);
+    document.querySelector('.exit-fs-icon').classList.toggle('hidden', !isFs);
+});
+
+document.getElementById('themeToggleBtn').addEventListener('click', () => {
+    state.isDark = !state.isDark;
+    document.body.classList.toggle('dark-mode', state.isDark);
+    document.querySelector('.sun-icon').classList.toggle('hidden', state.isDark);
+    document.querySelector('.moon-icon').classList.toggle('hidden', !state.isDark);
+    buildModeUI();
+});
+
+document.getElementById('recenterBtn').addEventListener('click', () => {
+    state.pan = { x: 50, y: 50 };
+    state.zoom = 1.0;
+    document.getElementById('sliderZoom').value = 1.0;
+    document.getElementById('valZoom').innerText = '1.0x';
+});
+
+document.getElementById('arrangeBtn').addEventListener('click', () => {
+    autoArrangeLayout();
+});
+
+// Settings Toggles
+document.getElementById('toggleAutoRotate').addEventListener('change', (e) => {
+    state.autoRotate = e.target.checked;
+    state.modeTimer = 0; // Reset timer when toggled
+    document.getElementById('rotateIntervalContainer').classList.toggle('hidden', !state.autoRotate);
+});
+
+document.getElementById('sliderRotateInterval').addEventListener('input', (e) => {
+    state.rotateInterval = parseInt(e.target.value);
+    document.getElementById('valRotateInterval').innerText = state.rotateInterval + 's';
+});
+
+document.getElementById('toggleStats').addEventListener('change', (e) => {
+    state.showStats = e.target.checked;
+    document.getElementById('statsPanel').style.opacity = state.showStats ? '1' : '0';
+});
+
+document.getElementById('toggleExplanations').addEventListener('change', (e) => {
+    state.showExplanations = e.target.checked;
+});
+
+const autoArrangeLayout = () => {
+    let cy = 80;
+    state.namespaces.forEach(ns => {
+        ns.x = 750;
+        ns.y = cy;
+        cy += ns.h + 40;
+        packNodes(ns);
+    });
+};
+
+const bindSlider = (id, valId, stateKey, parser) => {
+    const el = document.getElementById(id);
+    const valEl = document.getElementById(valId);
+    el.addEventListener('input', (e) => {
+        const val = parser(e.target.value);
+        state[stateKey] = val;
+        valEl.innerText = stateKey === 'zoom' ? val.toFixed(1) + 'x' : val;
+        if (stateKey === 'nsCount' || stateKey === 'podCount') provisionCluster();
+    });
+};
+bindSlider('sliderNs', 'valNs', 'nsCount', parseInt);
+bindSlider('sliderPods', 'valPods', 'podCount', parseInt);
+
+document.getElementById('sliderZoom').addEventListener('input', (e) => {
+    const newZoom = parseFloat(e.target.value);
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    const scaleChange = newZoom - state.zoom;
+    
+    state.pan.x -= (cx - state.pan.x) * (scaleChange / state.zoom);
+    state.pan.y -= (cy - state.pan.y) * (scaleChange / state.zoom);
+    state.zoom = newZoom;
+    document.getElementById('valZoom').innerText = newZoom.toFixed(1) + 'x';
+});
+
+// Mode UI
+const buildModeUI = () => {
+    const container = document.getElementById('modeContainer');
+    container.innerHTML = '';
+    Object.values(MODES).forEach(m => {
+        const isActive = state.mode === m.id;
+        const btn = document.createElement('button');
+        btn.className = `mode-btn relative px-8 py-4 rounded-xl flex flex-col items-center gap-2 border ${isActive ? 'active' : ''}`;
+        btn.style.borderColor = isActive ? m.color : 'transparent';
+        btn.style.background = isActive ? m.bg : '';
+        
+        let iconSvg = '';
+        const stroke = isActive ? m.color : 'currentColor';
+        if(m.id === 'discover') iconSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
+        if(m.id === 'monitor') iconSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        if(m.id === 'protect') iconSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`;
+
+        btn.innerHTML = `
+            <div class="${isActive ? 'drop-shadow-[0_0_8px_' + m.color + ']' : ''}">${iconSvg}</div>
+            <span class="font-bold text-sm uppercase tracking-wider" style="color: ${isActive ? m.color : ''}">${m.name} Mode</span>
+            ${isActive ? `<div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-1 rounded-full" style="background-color: ${m.color}"></div>` : ''}
+        `;
+        btn.onclick = () => { 
+            state.mode = m.id; 
+            state.modeTimer = 0; // Reset timer if clicked manually
+            buildModeUI(); 
+        };
+        container.appendChild(btn);
+    });
+};
+buildModeUI();
+
+// --- Logic ---
+
+const resizeCanvas = () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+};
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+const packNodes = (ns) => {
+    const nsNodes = state.nodes.filter(n => n.nsId === ns.id);
+    if (!nsNodes.length) return;
+
+    const POD_W = 140, POD_H = 70;
+    const GAP_X = 20, GAP_Y = 20;
+
+    let cols = Math.floor((ns.w - GAP_X) / (POD_W + GAP_X));
+    if (cols < 1) cols = 1;
+
+    const grid_w = cols * POD_W + (cols - 1) * GAP_X;
+    const offset_x = ns.x + (ns.w - grid_w) / 2;
+    const offset_y = ns.y + 40; 
+
+    nsNodes.forEach((n, i) => {
+        const c = i % cols;
+        const r = Math.floor(i / cols);
+        n.x = offset_x + c * (POD_W + GAP_X) + POD_W / 2;
+        n.y = offset_y + r * (POD_H + GAP_Y) + POD_H / 2;
+    });
+};
+
+const provisionCluster = () => {
+    state.namespaces = [];
+    state.nodes = [];
+    const podsPerNs = Array(state.nsCount).fill(0);
+    for (let i = 0; i < state.podCount; i++) podsPerNs[i % state.nsCount]++;
+
+    let cy = 80;
+    for (let i = 0; i < state.nsCount; i++) {
+        const tpl = NS_TEMPLATES[i % NS_TEMPLATES.length];
+        const count = podsPerNs[i];
+        const cols = Math.max(1, Math.ceil(Math.sqrt(count)));
+        const rows = Math.max(1, Math.ceil(count / cols));
+        const w = Math.max(200, cols * 160 + 40);
+        const h = Math.max(120, rows * 90 + 50);
+
+        state.namespaces.push({ id: i, x: 750, y: cy, w, h, name: tpl.name, color: tpl.color });
+        cy += h + 40;
+    }
+
+    for (let i = 0; i < state.podCount; i++) {
+        const nsId = i % state.nsCount;
+        state.nodes.push({
+            id: i, nsId, x: 0, y: 0,
+            ip: `10.42.${nsId + 1}.${10 + i}`,
+            port: nsId === 0 ? 80 : (nsId === 1 ? 8080 : 5432),
+            label: `${NS_TEMPLATES[nsId % NS_TEMPLATES.length].name}-${i + 1}`
+        });
+    }
+
+    state.namespaces.forEach(packNodes);
+};
+provisionCluster();
+
+// --- Input Handling ---
+
+const getMousePos = (e) => {
+    return {
+        x: (e.clientX - state.pan.x) / state.zoom,
+        y: (e.clientY - state.pan.y) / state.zoom
+    };
+};
+
+canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const zoomSpeed = 0.0015;
+    const delta = -e.deltaY * zoomSpeed;
+    const newZoom = Math.min(Math.max(0.4, state.zoom + delta), 3.0);
+    
+    if (newZoom !== state.zoom) {
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+        const scaleChange = newZoom - state.zoom;
+        state.pan.x -= (mouseX - state.pan.x) * (scaleChange / state.zoom);
+        state.pan.y -= (mouseY - state.pan.y) * (scaleChange / state.zoom);
+        state.zoom = newZoom;
+        const zoomSlider = document.getElementById('sliderZoom');
+        const zoomVal = document.getElementById('valZoom');
+        if (zoomSlider && zoomVal) {
+            zoomSlider.value = newZoom;
+            zoomVal.innerText = newZoom.toFixed(1) + 'x';
+        }
+    }
+}, { passive: false });
+
+canvas.addEventListener('mousedown', e => {
+    if (e.button === 1) { 
+        e.preventDefault();
+        state.drag = { type: 'pan', startX: e.clientX, startY: e.clientY, panX: state.pan.x, panY: state.pan.y };
+        document.body.style.cursor = 'grabbing';
+        return;
+    }
+
+    if (e.button !== 0) return; 
+
+    const pos = getMousePos(e);
+    for(let i = state.nodes.length-1; i>=0; i--) {
+        const n = state.nodes[i];
+        if(pos.x > n.x - 70 && pos.x < n.x + 70 && pos.y > n.y - 35 && pos.y < n.y + 35) {
+            state.drag = { type: 'node', id: n.id, ox: pos.x - n.x, oy: pos.y - n.y };
+            return;
+        }
+    }
+
+    for(let i = state.namespaces.length-1; i>=0; i--) {
+        const ns = state.namespaces[i];
+        if(pos.x > ns.x + ns.w - 30 && pos.x < ns.x + ns.w && pos.y > ns.y + ns.h - 30 && pos.y < ns.y + ns.h) {
+            state.drag = { type: 'ns-resize', id: ns.id, startX: pos.x, startY: pos.y, startW: ns.w, startH: ns.h };
+            return;
+        }
+        if(pos.x > ns.x && pos.x < ns.x + ns.w && pos.y > ns.y - 20 && pos.y < ns.y + 20) {
+            state.drag = { type: 'ns', id: ns.id, ox: pos.x - ns.x, oy: pos.y - ns.y };
+            return;
+        }
+    }
+});
+
+window.addEventListener('mousemove', e => {
+    if(!state.drag) return;
+    if (state.drag.type === 'pan') {
+        state.pan.x = state.drag.panX + (e.clientX - state.drag.startX);
+        state.pan.y = state.drag.panY + (e.clientY - state.drag.startY);
+        return;
+    }
+    const pos = getMousePos(e);
+    
+    if(state.drag.type === 'node') {
+        const n = state.nodes.find(n => n.id === state.drag.id);
+        if(n) { 
+            let nx = pos.x - state.drag.ox;
+            // Mathematical Boundary: Prevent drag past DPI Barrier
+            if (nx < ENFORCER_X + 110) nx = ENFORCER_X + 110;
+            n.x = nx; 
+            n.y = pos.y - state.drag.oy; 
+        }
+    } else if (state.drag.type === 'ns') {
+        const ns = state.namespaces.find(n => n.id === state.drag.id);
+        if(ns) {
+            let dx = (pos.x - state.drag.ox) - ns.x;
+            const dy = (pos.y - state.drag.oy) - ns.y;
+            // Mathematical Boundary: Prevent namespace drag past DPI Barrier
+            if (ns.x + dx < ENFORCER_X + 40) dx = (ENFORCER_X + 40) - ns.x;
+            
+            ns.x += dx; ns.y += dy;
+            state.nodes.filter(n => n.nsId === ns.id).forEach(n => { n.x += dx; n.y += dy; });
+        }
+    } else if (state.drag.type === 'ns-resize') {
+        const ns = state.namespaces.find(n => n.id === state.drag.id);
+        if(ns) {
+            ns.w = Math.max(180, state.drag.startW + (pos.x - state.drag.startX));
+            ns.h = Math.max(100, state.drag.startH + (pos.y - state.drag.startY));
+            packNodes(ns);
+        }
+    }
+});
+
+window.addEventListener('mouseup', () => { 
+    if (state.drag && state.drag.type === 'pan') document.body.style.cursor = 'default';
+    state.drag = null; 
+});
+
+// --- Math & Physics Helpers ---
+const bezier = (t, p0, p1, p2, p3) => {
+    const mt = 1 - t;
+    return {
+        x: mt*mt*mt*p0.x + 3*mt*mt*t*p1.x + 3*mt*t*t*p2.x + t*t*t*p3.x,
+        y: mt*mt*mt*p0.y + 3*mt*mt*t*p1.y + 3*mt*t*t*p2.y + t*t*t*p3.y
+    };
+};
+const quad = (t, p0, p1, p2) => {
+    const mt = 1 - t;
+    return {
+        x: mt*mt*p0.x + 2*mt*t*p1.x + t*t*p2.x,
+        y: mt*mt*p0.y + 2*mt*t*p1.y + t*t*p2.y
+    };
+};
+const getExtIp = () => `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+
+const spawnPacket = () => {
+    if(!state.nodes.length) return;
+    const isMalicious = Math.random() > 0.65;
+    const rand = Math.random();
+    let type = 'inbound', srcNodeId = null, dstNodeId = null, srcIp = '', dstIp = '', srcPort = 0, dstPort = 0;
+
+    if (rand > 0.65) {
+        type = 'outbound';
+        const n = state.nodes[Math.floor(Math.random() * state.nodes.length)];
+        srcNodeId = n.id; srcIp = n.ip; srcPort = n.port; dstIp = getExtIp(); dstPort = 443;
+    } else if (rand > 0.35 && state.nodes.length > 1) {
+        type = 'east-west';
+        const s = [...state.nodes].sort(()=>0.5-Math.random());
+        srcNodeId = s[0].id; dstNodeId = s[1].id;
+        srcIp = s[0].ip; srcPort = Math.floor(Math.random()*10000)+30000;
+        dstIp = s[1].ip; dstPort = s[1].port;
+    } else {
+        type = 'inbound';
+        const n = state.nodes[Math.floor(Math.random() * state.nodes.length)];
+        dstNodeId = n.id; srcIp = getExtIp(); srcPort = Math.floor(Math.random()*50000)+1024;
+        dstIp = n.ip; dstPort = n.port;
+    }
+
+    state.packets.push({
+        id: Math.random(), type, progress: 0, malicious: isMalicious,
+        srcNodeId, dstNodeId, srcIp, dstIp, srcPort, dstPort,
+        speed: 0.002 + Math.random() * 0.0015, state: 'moving', handled: false, pos: {x:0, y:0}, angle: 0,
+        reason: isMalicious ? BLOCK_REASONS[Math.floor(Math.random() * BLOCK_REASONS.length)] : ''
+    });
+};
+
+const spawnExplosion = (x, y) => {
+    for (let j = 0; j < 14; j++) {
+        const angle = (Math.PI * 2 / 14) * j + (Math.random() * 0.5);
+        const speed = 4 + Math.random() * 6;
+        state.particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1.0 });
+    }
+};
+
+// --- Drawing Engine ---
+
+const drawRoundedRect = (ctx, x, y, w, h, r) => {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+};
+
+const drawPodIcon = (ctx, cx, cy, radius, th) => {
+    ctx.strokeStyle = th.textMuted;
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 3) * i - Math.PI / 6;
+        const px = cx + radius * Math.cos(angle);
+        const py = cy + radius * Math.sin(angle);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx, cy); ctx.lineTo(cx, cy + radius);
+    ctx.moveTo(cx, cy); ctx.lineTo(cx + radius * Math.cos(Math.PI * 7/6), cy + radius * Math.sin(Math.PI * 7/6));
+    ctx.moveTo(cx, cy); ctx.lineTo(cx + radius * Math.cos(-Math.PI / 6), cy + radius * Math.sin(-Math.PI / 6));
+    ctx.stroke();
+};
+
+const drawGlobe = (x, y, th) => {
+    ctx.strokeStyle = th.globe; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, y, 20, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(x, y, 10, 20, 0, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-20, y); ctx.lineTo(x+20, y); ctx.stroke();
+};
+
+const drawEnforcer = (time, th) => {
+    const M = MODES[state.mode];
+    const yOffset = 500;
+
+    ctx.save();
+    const grad = ctx.createLinearGradient(0, yOffset-400, 0, yOffset+400);
+    grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(0.5, M.color); grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = state.mode === 'protect' ? 0.35 : 0.15;
+    drawRoundedRect(ctx, ENFORCER_X - 25, yOffset - 400, 50, 800, 25);
+    ctx.fillStyle = grad; ctx.fill();
+
+    ctx.globalAlpha = 1.0;
+    ctx.beginPath();
+    if(state.mode === 'discover') ctx.setLineDash([10, 10]); else ctx.setLineDash([]);
+    ctx.moveTo(ENFORCER_X, yOffset - 400); ctx.lineTo(ENFORCER_X, yOffset + 400);
+    ctx.strokeStyle = M.color; ctx.lineWidth = 6;
+    ctx.shadowColor = M.color; ctx.shadowBlur = 25;
+    ctx.stroke(); ctx.setLineDash([]); ctx.shadowBlur = 0;
+    
+    // Core Icon in Pillar
+    ctx.fillStyle = th.internetBg; ctx.strokeStyle = M.color; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(ENFORCER_X, yOffset, 60, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    
+    ctx.save();
+    ctx.translate(ENFORCER_X, yOffset);
+    ctx.strokeStyle = M.color; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if(state.mode === 'discover') {
+        ctx.beginPath(); ctx.arc(-4, -4, 15, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(8, 8); ctx.lineTo(22, 22); ctx.stroke();
+    } else if(state.mode === 'monitor') {
+        ctx.beginPath(); ctx.moveTo(-30, 0); ctx.quadraticCurveTo(0, -25, 30, 0); ctx.quadraticCurveTo(0, 25, -30, 0); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    } else {
+        ctx.beginPath(); ctx.moveTo(0, -25); ctx.lineTo(20, -15); ctx.lineTo(20, 5); ctx.quadraticCurveTo(20, 25, 0, 35); ctx.quadraticCurveTo(-20, 25, -20, 5); ctx.lineTo(-20, -15); ctx.closePath(); ctx.stroke();
+    }
+    ctx.restore();
+
+    // NeuVector DPI Title (Moved up with a solid background box)
+    ctx.font = 'bold 16px monospace'; 
+    const titleText = 'NeuVector DPI';
+    const textW = ctx.measureText(titleText).width;
+    const boxW = textW + 24;
+    const boxH = 30;
+    const boxX = ENFORCER_X - boxW / 2;
+    const boxY = yOffset - 115; // Moved up
+    
+    // Draw background box to hide the vertical line
+    ctx.fillStyle = th.internetBg; 
+    ctx.strokeStyle = M.color; 
+    ctx.lineWidth = 2;
+    drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 8); 
+    ctx.fill(); 
+    ctx.stroke();
+
+    ctx.fillStyle = M.color; 
+    ctx.textAlign = 'center'; 
+    ctx.textBaseline = 'middle';
+    ctx.fillText(titleText, ENFORCER_X, boxY + boxH / 2 + 1);
+    ctx.restore();
+};
+
+const render = (time) => {
+    const th = getTheme();
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0); 
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.setTransform(state.zoom, 0, 0, state.zoom, state.pan.x, state.pan.y);
+
+    // 1. Draw Paths (Wireframes)
+    ctx.strokeStyle = th.wireframe; ctx.lineWidth = 2; ctx.setLineDash([4, 6]); ctx.globalAlpha = 0.5;
+    state.nodes.forEach(n => {
+        ctx.beginPath(); ctx.moveTo(START_X, 500); 
+        ctx.bezierCurveTo((START_X+n.x)/2, 500, (START_X+n.x)/2, n.y, n.x, n.y); ctx.stroke();
+    });
+    for(let i=0; i<state.nodes.length; i++) {
+        for(let j=i+1; j<state.nodes.length; j++) {
+            const n1 = state.nodes[i], n2 = state.nodes[j];
+            if(n1.nsId !== n2.nsId) continue;
+            ctx.beginPath(); ctx.moveTo(n1.x, n1.y);
+            ctx.quadraticCurveTo(ENFORCER_X - 100, (n1.y+n2.y)/2, n2.x, n2.y); ctx.stroke();
+        }
+    }
+    ctx.setLineDash([]); ctx.globalAlpha = 1.0;
+
+    // 2. Providers
+    const providers = [{ x: 50, y: 300, label: 'API Server A' }, { x: 30, y: 430, label: 'Datacenter' }, { x: 30, y: 570, label: 'API Server B' }, { x: 50, y: 700, label: 'Remote Office' }];
+    ctx.strokeStyle = th.internetBorder; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); ctx.globalAlpha = 0.6;
+    providers.forEach(p => { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(START_X, 500); ctx.stroke(); });
+    ctx.setLineDash([]); ctx.globalAlpha = 1.0;
+    providers.forEach(p => {
+        ctx.save(); ctx.translate(p.x, p.y);
+        ctx.fillStyle = th.internetBg; ctx.strokeStyle = th.internetBorder; ctx.lineWidth = 2;
+        ctx.fillRect(-15, -25, 30, 50); ctx.strokeRect(-15, -25, 30, 50);
+        for(let j=0; j<3; j++) {
+            ctx.strokeRect(-10, -20 + j*16, 20, 10);
+            ctx.fillStyle = (Math.sin(time/200 + j*2 + p.y) > 0) ? '#10b981' : th.wireframe;
+            ctx.beginPath(); ctx.arc(5, -15 + j*16, 2, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.restore();
+        ctx.fillStyle = th.textMuted; ctx.font = '10px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        ctx.fillText(p.label, p.x, p.y + 35);
+    });
+
+    ctx.fillStyle = th.internetBg; ctx.strokeStyle = th.internetBorder; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(START_X, 500, 60, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath(); ctx.arc(START_X, 500, 60 + ((Math.sin(time/500)+1)*10), 0, Math.PI*2); ctx.stroke();
+    ctx.globalAlpha = 1.0;
+    drawGlobe(START_X, 500, th);
+    ctx.fillStyle = th.textMain; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('INTERNET', START_X, 580);
+
+    drawEnforcer(time, th);
+
+    // 3. Explanation Tooltip (if toggled)
+    if (state.showExplanations) {
+        const m = MODES[state.mode];
+        ctx.font = 'bold 14px sans-serif';
+        const tw = ctx.measureText(m.desc).width;
+        const bw = tw + 40;
+        const bh = 50;
+        const boxX = ENFORCER_X - bw - 60;
+        const boxY = 150; // Moved to top part of the screen
+
+        // Arrow
+        ctx.beginPath();
+        ctx.moveTo(boxX + bw, boxY + bh / 2);
+        ctx.lineTo(ENFORCER_X - 35, boxY + bh / 2);
+        ctx.strokeStyle = m.color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Arrow Head
+        ctx.fillStyle = m.color;
+        ctx.beginPath();
+        ctx.moveTo(ENFORCER_X - 35, boxY + bh / 2);
+        ctx.lineTo(ENFORCER_X - 45, boxY + bh / 2 - 5);
+        ctx.lineTo(ENFORCER_X - 45, boxY + bh / 2 + 5);
+        ctx.closePath();
+        ctx.fill();
+
+        // Background Box
+        ctx.fillStyle = th.boxBgSolid;
+        ctx.strokeStyle = m.color;
+        ctx.lineWidth = 2;
+        drawRoundedRect(ctx, boxX, boxY, bw, bh, 8);
+        ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = m.color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(m.desc, boxX + bw / 2, boxY + bh / 2 + 1);
+    }
+
+    state.namespaces.forEach(ns => {
+        const isDragging = state.drag && (state.drag.id === ns.id) && (state.drag.type==='ns' || state.drag.type==='ns-resize');
+        ctx.fillStyle = ns.color; ctx.globalAlpha = isDragging ? 0.08 : 0.03;
+        drawRoundedRect(ctx, ns.x, ns.y, ns.w, ns.h, 20); ctx.fill();
+        ctx.strokeStyle = ns.color; ctx.globalAlpha = isDragging ? 0.6 : 0.3;
+        ctx.lineWidth = 2; ctx.setLineDash([8, 4]); ctx.stroke(); ctx.setLineDash([]);
+        
+        ctx.globalAlpha = 0.8; ctx.textAlign = 'center'; ctx.font = 'bold 11px sans-serif'; ctx.letterSpacing = '2px';
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillText(`${ns.name} NS`.toUpperCase(), ns.x + ns.w/2, ns.y - 10);
+        drawRoundedRect(ctx, ns.x + ns.w/2 - 20, ns.y - 20, 40, 4, 2); ctx.fill();
+        
+        ctx.globalAlpha = isDragging ? 1.0 : 0.5; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(ns.x+ns.w-15, ns.y+ns.h-5); ctx.lineTo(ns.x+ns.w-5, ns.y+ns.h-15); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(ns.x+ns.w-10, ns.y+ns.h-5); ctx.lineTo(ns.x+ns.w-5, ns.y+ns.h-10); ctx.stroke();
+        ctx.globalAlpha = 1.0;
+    });
+
+    state.nodes.forEach(n => {
+        const isDragging = state.drag && state.drag.id === n.id && state.drag.type === 'node';
+        if(isDragging) {
+            ctx.shadowColor = '#06b6d4'; ctx.shadowBlur = 20; ctx.fillStyle = 'rgba(6,182,212,0.2)';
+            drawRoundedRect(ctx, n.x-75, n.y-40, 150, 80, 16); ctx.fill(); ctx.shadowBlur = 0;
+        }
+        ctx.fillStyle = th.nodeBg; ctx.strokeStyle = th.nodeBorder; ctx.lineWidth = 2;
+        drawRoundedRect(ctx, n.x-70, n.y-35, 140, 70, 12); ctx.fill(); ctx.stroke();
+        
+        // Aligned Icon & Text Fix
+        drawPodIcon(ctx, n.x - 45, n.y - 10, 14, th);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        
+        ctx.fillStyle = th.nodeText1; ctx.font = 'bold 13px sans-serif'; ctx.letterSpacing = '0px';
+        ctx.fillText(n.label, n.x - 20, n.y - 14);
+        
+        ctx.fillStyle = th.nodeText2; ctx.font = '10px monospace';
+        ctx.fillText(`IP: ${n.ip}`, n.x - 20, n.y + 3);
+        ctx.fillText(`Port: ${n.port}`, n.x - 20, n.y + 17);
+        
+        ctx.fillStyle = '#10b981'; ctx.shadowColor = '#10b981'; ctx.shadowBlur = 10;
+        ctx.beginPath(); ctx.arc(n.x+55, n.y-20, 5, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+    });
+
+    state.packets.forEach(p => {
+        if (!p.pos || p.pos.x === undefined) return;
+        let color = p.malicious ? '#ef4444' : '#10b981';
+        if (p.handled && state.mode === 'monitor' && p.malicious) color = '#f59e0b';
+        ctx.save(); ctx.translate(p.pos.x, p.pos.y); ctx.rotate(p.angle);
+        const grad = ctx.createLinearGradient(-60, 0, 0, 0); grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(1, color);
+        ctx.fillStyle = grad; ctx.globalAlpha = 0.8; ctx.fillRect(-60, -3, 60, 6); ctx.restore();
+        ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 15;
+        ctx.beginPath(); ctx.arc(p.pos.x, p.pos.y, 8, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+        
+        const text = `${p.srcIp}:${p.srcPort} -> ${p.dstIp}:${p.dstPort}`;
+        ctx.font = '10px monospace';
+        const tw = ctx.measureText(text).width, bw = tw + 16, bh = 20;
+        ctx.fillStyle = th.boxBg; ctx.strokeStyle = color; ctx.lineWidth = 1;
+        drawRoundedRect(ctx, p.pos.x - bw / 2, p.pos.y - 32, bw, bh, 5); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(text, p.pos.x, p.pos.y - 32 + (bh / 2) + 1); 
+    });
+
+    ctx.fillStyle = '#ef4444'; ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 10;
+    state.particles.forEach(p => { ctx.globalAlpha = p.life; ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(1, p.life * 5), 0, Math.PI*2); ctx.fill(); });
+    ctx.globalAlpha = 1.0; ctx.shadowBlur = 0;
+
+    state.texts.forEach(t => {
+        let color = t.type === 'discover' ? '#06b6d4' : (t.type === 'monitor' ? '#f59e0b' : '#ef4444');
+        ctx.globalAlpha = t.life; ctx.font = 'bold 13px sans-serif';
+        const tw = ctx.measureText(t.text).width, bw = tw + 30, bh = 30;
+        ctx.fillStyle = th.boxBgSolid; ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+        drawRoundedRect(ctx, t.x - bw / 2, t.y - 30, bw, bh, 8); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; 
+        ctx.fillText(t.text, t.x, t.y - 30 + (bh / 2) + 1); 
+        ctx.globalAlpha = 1.0;
+    });
+};
+
+const loop = (time) => {
+    if (!state.lastTime) state.lastTime = time;
+    const dt = Math.min(time - state.lastTime, 50);
+    state.lastTime = time;
+    state.packetTimer += dt;
+    
+    // Process Auto-Rotate
+    if (state.autoRotate) {
+        state.modeTimer += dt;
+        if (state.modeTimer > state.rotateInterval * 1000) { 
+            state.modeTimer = 0;
+            const modeKeys = Object.keys(MODES);
+            const currIdx = modeKeys.indexOf(state.mode);
+            state.mode = modeKeys[(currIdx + 1) % modeKeys.length];
+            buildModeUI();
+        }
+    }
+
+    if (state.packetTimer > 700) { state.packetTimer = 0; spawnPacket(); }
+    for (let i = 0; i < state.packets.length; i++) {
+        let p = state.packets[i]; if (p.state === 'blocked') continue;
+        p.progress += p.speed;
+        const srcNode = state.nodes.find(n => n.id === p.srcNodeId), dstNode = state.nodes.find(n => n.id === p.dstNodeId);
+        let p0, p1, p2, p3, crossed = false, valid = false;
+        if (p.type === 'inbound' && dstNode) {
+            p0 = { x: START_X, y: 500 }; p3 = { x: dstNode.x, y: dstNode.y };
+            p.pos = bezier(p.progress, p0, {x: (p0.x+p3.x)/2, y: p0.y}, {x: (p0.x+p3.x)/2, y: p3.y}, p3);
+            if (p.pos.x >= ENFORCER_X) crossed = true; valid = true;
+        } else if (p.type === 'outbound' && srcNode) {
+            p0 = { x: srcNode.x, y: srcNode.y }; p3 = { x: START_X, y: 500 };
+            p.pos = bezier(p.progress, p0, {x: (p0.x+p3.x)/2, y: p0.y}, {x: (p0.x+p3.x)/2, y: p3.y}, p3);
+            if (p.pos.x <= ENFORCER_X) crossed = true; valid = true;
+        } else if (p.type === 'east-west' && srcNode && dstNode) {
+            p0 = { x: srcNode.x, y: srcNode.y }; p2 = { x: dstNode.x, y: dstNode.y }; p1 = { x: ENFORCER_X - 100, y: (p0.y + p2.y) / 2 };
+            p.pos = quad(p.progress, p0, p1, p2); if (p.progress >= 0.5) crossed = true; valid = true;
+        }
+        if (!valid) { p.state = 'blocked'; continue; }
+        if(p.progress > 0.01 && p.pos) {
+            let nextPos = p.type === 'east-west' ? quad(p.progress+0.01, p0, p1, p2) : bezier(p.progress+0.01, p0, {x: (p0.x+p3.x)/2, y: p0.y}, {x: (p0.x+p3.x)/2, y: p3.y}, p3);
+            p.angle = Math.atan2(nextPos.y - p.pos.y, nextPos.x - p.pos.x);
+        }
+        if (!p.handled && crossed && p.pos) {
+            p.handled = true;
+            state.stats.monitored++; // Increment total monitored traffic
+            
+            if (state.mode === 'discover' && !p.malicious && Math.random() > 0.5) {
+                state.texts.push({ id: Math.random(), x: ENFORCER_X, y: p.pos.y - 40, text: 'Rule Learned', type: 'discover', life: 1.0 });
+                state.stats.rules++; // Increment learned rules
+            }
+            else if (state.mode === 'monitor' && p.malicious) {
+                state.texts.push({ id: Math.random(), x: ENFORCER_X, y: p.pos.y - 40, text: `Alert: ${p.reason}`, type: 'monitor', life: 1.0 });
+                state.stats.alerts++; // Increment alerts
+            }
+            else if (state.mode === 'protect' && p.malicious) { 
+                p.state = 'blocked'; 
+                state.texts.push({ id: Math.random(), x: ENFORCER_X - 40, y: p.pos.y - 40, text: `Blocked: ${p.reason}`, type: 'protect', life: 1.0 }); 
+                spawnExplosion(p.pos.x, p.pos.y); 
+                state.stats.blocked++; // Increment blocked attacks
+            }
+        }
+    }
+    state.packets = state.packets.filter(p => p.progress < 1 && p.state !== 'blocked');
+    state.particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.02; });
+    state.particles = state.particles.filter(p => p.life > 0);
+    state.texts.forEach(t => { t.y -= 1.2; t.life -= 0.015; });
+    state.texts = state.texts.filter(t => t.life > 0);
+    
+    // Update DOM Stats Counters efficiently
+    if (state.showStats) {
+        document.getElementById('countRules').innerText = state.stats.rules.toLocaleString();
+        document.getElementById('countMonitored').innerText = state.stats.monitored.toLocaleString();
+        document.getElementById('countAlerts').innerText = state.stats.alerts.toLocaleString();
+        document.getElementById('countBlocked').innerText = state.stats.blocked.toLocaleString();
+    }
+    
+    render(time); requestAnimationFrame(loop);
+};
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
