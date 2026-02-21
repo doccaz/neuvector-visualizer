@@ -50,10 +50,13 @@
         .mode-btn.active { box-shadow: 0 0 20px rgba(0,0,0,0.1); background: rgba(255,255,255,0.9); }
         .dark-mode .mode-btn.active { box-shadow: 0 0 20px rgba(0,0,0,0.5); background: rgba(30, 41, 59, 0.8); }
 
+        .fact-text { color: #0f172a; }
+        .dark-mode .fact-text { color: #cbd5e1; }
+
         /* Custom Range Slider */
         input[type=range] { -webkit-appearance: none; background: transparent; height: 4px; border-radius: 2px; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #06b6d4; cursor: pointer; }
-        input[type=range]::-moz-range-thumb { border: none; height: 16px; width: 16px; border-radius: 50%; background: #06b6d4; cursor: pointer; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #06b6d4; cursor: pointer; transition: background 0.3s;}
+        input[type=range]::-moz-range-thumb { border: none; height: 16px; width: 16px; border-radius: 50%; background: #06b6d4; cursor: pointer; transition: background 0.3s;}
         input[type=range]::-webkit-slider-runnable-track { background: #cbd5e1; border-radius: 2px; }
         .dark-mode input[type=range]::-webkit-slider-runnable-track { background: #334155; }
 
@@ -63,9 +66,31 @@
         
         .brand-logo-nv { transition: filter 0.3s; filter: none; }
         .dark-mode .brand-logo-nv { filter: brightness(0) invert(1); }
+
+        /* Styling for the custom switch toggles */
+        .toggle-checkbox:checked { right: 0; border-color: #06b6d4; transition: border-color 0.3s;}
+        .toggle-checkbox:checked + .toggle-label { background-color: #06b6d4; transition: background-color 0.3s;}
+        .toggle-checkbox:not(:checked) { right: 20px; }
+
+        /* Custom Scrollbar for Settings */
+        .settings-scroll::-webkit-scrollbar { width: 6px; }
+        .settings-scroll::-webkit-scrollbar-track { background: transparent; }
+        .settings-scroll::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.5); border-radius: 10px; }
+
+        /* SUSE Theme Overrides */
+        .theme-suse .text-cyan-500 { color: #30ba78 !important; }
+        .theme-suse .text-cyan-400 { color: #30ba78 !important; }
+        .theme-suse .bg-cyan-500\/20 { background-color: rgba(48, 186, 120, 0.2) !important; }
+        .theme-suse input[type=range]::-webkit-slider-thumb { background: #30ba78 !important; }
+        .theme-suse input[type=range]::-moz-range-thumb { background: #30ba78 !important; }
+        .theme-suse .toggle-checkbox:checked { border-color: #30ba78 !important; }
+        .theme-suse .toggle-checkbox:checked + .toggle-label { background-color: #30ba78 !important; }
+        .theme-suse [stroke="#06b6d4"] { stroke: #30ba78 !important; }
+        .theme-suse select:focus { border-color: #30ba78 !important; outline: none; }
+
     </style>
 </head>
-<body class="dark-mode">
+<body class="dark-mode theme-suse">
 
     <!-- UI Overlay -->
     <div class="absolute inset-0 pointer-events-none z-10 overflow-hidden">
@@ -76,39 +101,39 @@
         <!-- Stats Panel -->
         <div id="statsPanel" class="absolute top-6 left-6 pointer-events-none flex flex-col gap-3 z-20 transition-opacity duration-300">
             <div class="glass-panel px-4 py-3 rounded-xl shadow-lg flex items-center gap-4 min-w-[220px]">
-                <div class="bg-cyan-500/20 text-cyan-500 p-2 rounded-lg">
+                <div class="bg-cyan-500/20 text-cyan-500 p-2 rounded-lg transition-colors">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                 </div>
                 <div>
-                    <div class="text-[10px] text-muted font-bold uppercase tracking-widest">Rules Learned</div>
-                    <div id="countRules" class="text-xl font-black text-cyan-500 font-mono">0</div>
+                    <div class="text-[10px] text-muted font-bold uppercase tracking-widest transition-colors">Rules Learned</div>
+                    <div id="countRules" class="text-xl font-black text-cyan-500 font-mono transition-colors">0</div>
                 </div>
             </div>
             <div class="glass-panel px-4 py-3 rounded-xl shadow-lg flex items-center gap-4 min-w-[220px]">
-                <div class="bg-blue-500/20 text-blue-500 p-2 rounded-lg">
+                <div class="bg-blue-500/20 text-blue-500 p-2 rounded-lg transition-colors">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                 </div>
                 <div>
-                    <div class="text-[10px] text-muted font-bold uppercase tracking-widest">Traffic Monitored</div>
-                    <div id="countMonitored" class="text-xl font-black text-blue-500 font-mono">0</div>
+                    <div class="text-[10px] text-muted font-bold uppercase tracking-widest transition-colors">Traffic Monitored</div>
+                    <div id="countMonitored" class="text-xl font-black text-blue-500 font-mono transition-colors">0</div>
                 </div>
             </div>
             <div class="glass-panel px-4 py-3 rounded-xl shadow-lg flex items-center gap-4 min-w-[220px]">
-                <div class="bg-amber-500/20 text-amber-500 p-2 rounded-lg">
+                <div class="bg-amber-500/20 text-amber-500 p-2 rounded-lg transition-colors">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                 </div>
                 <div>
-                    <div class="text-[10px] text-muted font-bold uppercase tracking-widest">Alerts Generated</div>
-                    <div id="countAlerts" class="text-xl font-black text-amber-500 font-mono">0</div>
+                    <div class="text-[10px] text-muted font-bold uppercase tracking-widest transition-colors">Alerts Generated</div>
+                    <div id="countAlerts" class="text-xl font-black text-amber-500 font-mono transition-colors">0</div>
                 </div>
             </div>
             <div class="glass-panel px-4 py-3 rounded-xl shadow-lg flex items-center gap-4 min-w-[220px]">
-                <div class="bg-emerald-500/20 text-emerald-500 p-2 rounded-lg">
+                <div class="bg-emerald-500/20 text-emerald-500 p-2 rounded-lg transition-colors">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                 </div>
                 <div>
-                    <div class="text-[10px] text-muted font-bold uppercase tracking-widest">Attacks Blocked</div>
-                    <div id="countBlocked" class="text-xl font-black text-emerald-500 font-mono">0</div>
+                    <div class="text-[10px] text-muted font-bold uppercase tracking-widest transition-colors">Events Blocked</div>
+                    <div id="countBlocked" class="text-xl font-black text-emerald-500 font-mono transition-colors">0</div>
                 </div>
             </div>
         </div>
@@ -126,17 +151,17 @@
         <!-- Controls -->
         <div class="absolute top-6 right-6 pointer-events-auto flex gap-3">
             <button id="themeToggleBtn" class="glass-panel btn-hover p-3 rounded-xl transition-colors shadow-lg group" title="Toggle Light/Dark Mode">
-                <svg class="sun-icon hidden group-hover:rotate-45 transition-transform" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                <svg class="moon-icon group-hover:rotate-12 transition-transform" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                <svg class="sun-icon hidden group-hover:rotate-45 transition-transform text-muted" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <svg class="moon-icon group-hover:rotate-12 transition-transform text-muted" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
             </button>
 
             <button id="fullscreenBtn" class="glass-panel btn-hover p-3 rounded-xl transition-colors shadow-lg group" title="Toggle Fullscreen">
-                <svg class="enter-fs-icon group-hover:scale-110 transition-transform" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
-                <svg class="exit-fs-icon hidden group-hover:scale-90 transition-transform" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>
+                <svg class="enter-fs-icon group-hover:scale-110 transition-transform text-muted" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                <svg class="exit-fs-icon hidden group-hover:scale-90 transition-transform text-muted" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>
             </button>
 
             <button id="recenterBtn" class="glass-panel btn-hover p-3 rounded-xl transition-colors shadow-lg group" title="Recenter Camera">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:scale-110 transition-transform"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:scale-110 transition-transform text-muted"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
             </button>
 
             <button id="arrangeBtn" class="glass-panel btn-hover p-3 rounded-xl transition-colors shadow-lg group" title="Auto-Arrange Layout">
@@ -144,13 +169,22 @@
             </button>
             
             <button id="toggleSettingsBtn" class="glass-panel btn-hover p-3 rounded-xl transition-colors shadow-lg group" title="Settings">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:rotate-90 transition-transform"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:rotate-90 transition-transform text-muted"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             </button>
 
-            <div id="settingsPanel" class="hidden absolute top-14 right-0 glass-panel p-6 rounded-2xl shadow-2xl w-80">
-                <h3 class="text-lg font-bold mb-6 border-b border-slate-700/50 pb-3 text-cyan-500">Visualizer Setup</h3>
+            <div id="settingsPanel" class="hidden absolute top-14 right-0 glass-panel p-6 rounded-2xl shadow-2xl w-80 max-h-[85vh] overflow-y-auto settings-scroll">
+                <h3 class="text-lg font-bold mb-5 border-b border-slate-700/50 pb-3 text-cyan-500 transition-colors">Visualizer Setup</h3>
                 <div class="space-y-5">
+                    
                     <div>
+                        <label class="flex justify-between text-sm text-muted mb-2 font-medium">Color Theme</label>
+                        <select id="themeSelect" class="w-full bg-transparent border border-slate-500/50 text-muted rounded p-1.5 outline-none cursor-pointer text-sm">
+                            <option value="suse" selected>SUSE Green</option>
+                            <option value="default">Blue</option>
+                        </select>
+                    </div>
+
+                    <div class="border-t border-slate-700/50 pt-4">
                         <label class="flex justify-between text-sm text-muted mb-2 font-medium">Namespaces <span id="valNs" class="font-bold">3</span></label>
                         <input type="range" id="sliderNs" min="1" max="5" value="3" class="w-full">
                     </div>
@@ -159,11 +193,27 @@
                         <input type="range" id="sliderPods" min="2" max="25" value="6" class="w-full">
                     </div>
                     <div>
+                        <label class="flex justify-between text-sm text-muted mb-2 font-medium">Internet Providers <span id="valProviders" class="font-bold">4</span></label>
+                        <input type="range" id="sliderProviders" min="1" max="15" value="4" class="w-full">
+                    </div>
+                    <div>
+                        <label class="flex justify-between text-sm text-muted mb-2 font-medium">On-Premise Sources <span id="valOnPrem" class="font-bold">2</span></label>
+                        <input type="range" id="sliderOnPrem" min="0" max="6" value="2" class="w-full">
+                    </div>
+                    <div>
                         <label class="flex justify-between text-sm text-muted mb-2 font-medium">Camera Zoom <span id="valZoom" class="font-bold">1.0x</span></label>
                         <input type="range" id="sliderZoom" min="0.4" max="3.0" step="0.1" value="1.0" class="w-full">
                     </div>
                     
-                    <div class="border-t border-slate-700/50 pt-4 mt-2 space-y-3">
+                    <div class="border-t border-slate-700/50 pt-4 mt-2 space-y-4">
+                        <label class="flex items-center justify-between cursor-pointer group">
+                            <span class="text-sm font-medium text-muted group-hover:text-cyan-400 transition-colors">Show Glowing Comet Paths</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" id="toggleCometPaths" checked class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-slate-400 appearance-none cursor-pointer transition-transform duration-300 ease-in-out z-10" />
+                                <div class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-400 cursor-pointer transition-colors duration-300 ease-in-out"></div>
+                            </div>
+                        </label>
+
                         <label class="flex items-center justify-between cursor-pointer group">
                             <span class="text-sm font-medium text-muted group-hover:text-cyan-400 transition-colors">Auto-Rotate Modes</span>
                             <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
@@ -172,7 +222,7 @@
                             </div>
                         </label>
                         
-                        <div id="rotateIntervalContainer" class="hidden pl-2 pb-2">
+                        <div id="rotateIntervalContainer" class="hidden pl-2 pb-1">
                             <label class="flex justify-between text-xs text-muted mb-2 font-medium">Rotation Interval <span id="valRotateInterval" class="font-bold">10s</span></label>
                             <input type="range" id="sliderRotateInterval" min="2" max="30" value="10" step="1" class="w-full">
                         </div>
@@ -192,28 +242,43 @@
                                 <div class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-400 cursor-pointer transition-colors duration-300 ease-in-out"></div>
                             </div>
                         </label>
+
+                        <label class="flex items-center justify-between cursor-pointer group">
+                            <span class="text-sm font-medium text-muted group-hover:text-cyan-400 transition-colors">Show Info Bubbles</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" id="toggleFacts" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-slate-400 appearance-none cursor-pointer transition-transform duration-300 ease-in-out z-10" />
+                                <div class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-400 cursor-pointer transition-colors duration-300 ease-in-out"></div>
+                            </div>
+                        </label>
+
+                        <div id="factIntervalContainer" class="hidden pl-2 pb-1">
+                            <label class="flex justify-between text-xs text-muted mb-2 font-medium">Fact Interval <span id="valFactInterval" class="font-bold">8s</span></label>
+                            <input type="range" id="sliderFactInterval" min="3" max="30" value="8" step="1" class="w-full">
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Mode Switcher -->
-        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 pointer-events-auto">
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 pointer-events-auto z-20">
             <div class="glass-panel p-2 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.2)] flex items-center gap-2" id="modeContainer">
                 <!-- Modes injected here -->
             </div>
+        </div>
+
+        <!-- Info Facts Bubble -->
+        <div id="factBubble" class="absolute top-8 left-1/2 transform -translate-x-1/2 glass-panel px-6 py-4 rounded-2xl shadow-xl max-w-2xl text-center transition-all duration-500 opacity-0 scale-95 pointer-events-none z-20 hidden">
+            <div class="text-cyan-500 font-bold text-[11px] uppercase tracking-widest mb-2 flex justify-center items-center gap-2 transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                NeuVector Security Fact
+            </div>
+            <div id="factText" class="text-sm md:text-base font-medium fact-text"></div>
         </div>
     </div>
 
     <!-- Simulation Canvas -->
     <canvas id="simCanvas"></canvas>
-
-<style>
-    /* Styling for the custom switch toggles */
-    .toggle-checkbox:checked { right: 0; border-color: #06b6d4; }
-    .toggle-checkbox:checked + .toggle-label { background-color: #06b6d4; }
-    .toggle-checkbox:not(:checked) { right: 20px; }
-</style>
 
 <script>
 /**
@@ -225,7 +290,16 @@
 const START_X = 150;
 const ENFORCER_X = 550;
 
-const BLOCK_REASONS = ['SQL Injection (OWASP)', 'Cross-Site Scripting (OWASP)', 'Broken Access Control', 'SSRF Attempt', 'SYN Flood Attack', 'DDoS Pattern Detected', 'DLP Pattern Detected', 'CVE-2024-3450 Exploit', 'Lateral Movement Blocked'];
+const BLOCK_REASONS = [
+    'SQL Injection (OWASP)', 'Cross-Site Scripting (OWASP)', 'Broken Access Control', 
+    'SSRF Attempt', 'SYN Flood Attack', 'DDoS Pattern Detected', 'DLP Pattern Detected', 
+    'CVE-2024-3450 Exploit', 'Lateral Movement Blocked',
+    'Compliance Violation: PCI-DSS', 'Compliance Violation: GDPR', 'Compliance Violation: HIPAA', 
+    'Compliance: Secret in clear text', 'Compliance: Unauthorized process',
+    'Process Violation: Suspicious execution', 'Process Violation: Privilege escalation',
+    'File Violation: Sensitive file modification', 'File Violation: System bin altered'
+];
+
 const NS_TEMPLATES = [
     { name: 'Frontend', color: '#3b82f6' },
     { name: 'API-Gateway', color: '#a855f7' },
@@ -234,28 +308,40 @@ const NS_TEMPLATES = [
     { name: 'Cache', color: '#eab308' }
 ];
 
-const MODES = {
-    discover: { id: 'discover', name: 'Discover', color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.1)', desc: 'Learning baseline behavior automatically.' },
-    monitor:  { id: 'monitor', name: 'Monitor', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', desc: 'Alerting on anomalies without dropping.' },
-    protect:  { id: 'protect', name: 'Protect', color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)', desc: 'Actively blocking unauthorized threats.' }
-};
+const FACTS = [
+    "NeuVector automatically discovers network behavior and creates zero-trust policies.",
+    "Rules can be customized for network, file, and process activities within containers.",
+    "NeuVector supports continuous vulnerability scanning for registries and CI/CD pipelines.",
+    "Deep Packet Inspection (DPI) actively identifies and blocks malicious payloads inline.",
+    "Security as Code is fully supported via Kubernetes Custom Resource Definitions (CRDs).",
+    "Running containers and hosts are continuously monitored for new CVEs and compliance violations."
+];
 
 // --- State ---
 let state = {
     mode: 'discover',
     isDark: true,
+    appTheme: 'suse',
+    showCometPaths: true,
     autoRotate: false,
     rotateInterval: 10,
     showExplanations: false,
     showStats: true,
+    showFacts: false,
+    factInterval: 8,
     stats: { rules: 0, monitored: 0, blocked: 0, alerts: 0 },
     modeTimer: 0,
+    factTimer: 0,
+    factIdx: 0,
     zoom: 1.0,
     pan: { x: 50, y: 50 }, 
     nsCount: 3,
     podCount: 6,
+    providerCount: 4,
+    onPremCount: 2,
     namespaces: [], 
     nodes: [],      
+    onPremNodes: [],
     packets: [],
     particles: [],
     texts: [],
@@ -264,17 +350,40 @@ let state = {
     drag: null      
 };
 
-// Theme Helper
-const getTheme = () => state.isDark ? {
-    textMain: '#cbd5e1', textMuted: '#64748b', wireframe: '#475569', 
-    internetBg: '#0f172a', internetBorder: '#334155', globe: '#94a3b8',
-    nodeBg: '#0f172a', nodeBorder: '#475569', nodeText1: '#e2e8f0', nodeText2: '#94a3b8',
-    boxBg: 'rgba(15,23,42,0.85)', boxBgSolid: 'rgba(15,23,42,0.95)'
-} : {
-    textMain: '#0f172a', textMuted: '#64748b', wireframe: '#cbd5e1', 
-    internetBg: '#ffffff', internetBorder: '#cbd5e1', globe: '#64748b',
-    nodeBg: '#ffffff', nodeBorder: '#cbd5e1', nodeText1: '#0f172a', nodeText2: '#475569',
-    boxBg: 'rgba(255,255,255,0.85)', boxBgSolid: 'rgba(255,255,255,0.95)'
+// Access modes dynamically to handle theme switching
+const getModes = () => ({
+    discover: { id: 'discover', name: 'Discover', color: state.appTheme === 'suse' ? '#30ba78' : '#06b6d4', bg: state.appTheme === 'suse' ? 'rgba(48, 186, 120, 0.1)' : 'rgba(6, 182, 212, 0.1)', desc: 'Learning baseline behavior automatically.' },
+    monitor:  { id: 'monitor', name: 'Monitor', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', desc: 'Alerting on anomalies without dropping.' },
+    protect:  { id: 'protect', name: 'Protect', color: state.appTheme === 'suse' ? '#046e38' : '#10b981', bg: state.appTheme === 'suse' ? 'rgba(4, 110, 56, 0.1)' : 'rgba(16, 185, 129, 0.1)', desc: 'Actively blocking unauthorized threats.' }
+});
+
+// Theme Helper for Canvas
+const getTheme = () => {
+    if (state.appTheme === 'suse') {
+        return state.isDark ? {
+            textMain: '#cbd5e1', textMuted: '#64748b', wireframe: '#1a4531', 
+            internetBg: '#0f172a', internetBorder: '#1a4531', globe: '#30ba78',
+            nodeBg: '#0f172a', nodeBorder: '#1a4531', nodeText1: '#e2e8f0', nodeText2: '#30ba78',
+            boxBg: 'rgba(15,23,42,0.85)', boxBgSolid: 'rgba(15,23,42,0.95)'
+        } : {
+            textMain: '#0f172a', textMuted: '#64748b', wireframe: '#86efac', 
+            internetBg: '#ffffff', internetBorder: '#a7f3d0', globe: '#30ba78',
+            nodeBg: '#ffffff', nodeBorder: '#a7f3d0', nodeText1: '#0f172a', nodeText2: '#166534',
+            boxBg: 'rgba(255,255,255,0.85)', boxBgSolid: 'rgba(255,255,255,0.95)'
+        };
+    }
+
+    return state.isDark ? {
+        textMain: '#cbd5e1', textMuted: '#64748b', wireframe: '#475569', 
+        internetBg: '#0f172a', internetBorder: '#334155', globe: '#94a3b8',
+        nodeBg: '#0f172a', nodeBorder: '#475569', nodeText1: '#e2e8f0', nodeText2: '#94a3b8',
+        boxBg: 'rgba(15,23,42,0.85)', boxBgSolid: 'rgba(15,23,42,0.95)'
+    } : {
+        textMain: '#0f172a', textMuted: '#64748b', wireframe: '#cbd5e1', 
+        internetBg: '#ffffff', internetBorder: '#cbd5e1', globe: '#64748b',
+        nodeBg: '#ffffff', nodeBorder: '#cbd5e1', nodeText1: '#0f172a', nodeText2: '#475569',
+        boxBg: 'rgba(255,255,255,0.85)', boxBgSolid: 'rgba(255,255,255,0.95)'
+    };
 };
 
 // --- DOM Elements ---
@@ -284,6 +393,16 @@ const ctx = canvas.getContext('2d');
 // Control Binding
 document.getElementById('toggleSettingsBtn').addEventListener('click', () => {
     document.getElementById('settingsPanel').classList.toggle('hidden');
+});
+
+document.getElementById('themeSelect').addEventListener('change', (e) => {
+    state.appTheme = e.target.value;
+    if (state.appTheme === 'suse') {
+        document.body.classList.add('theme-suse');
+    } else {
+        document.body.classList.remove('theme-suse');
+    }
+    buildModeUI();
 });
 
 document.getElementById('fullscreenBtn').addEventListener('click', () => {
@@ -300,6 +419,9 @@ document.addEventListener('fullscreenchange', () => {
     const isFs = !!document.fullscreenElement;
     document.querySelector('.enter-fs-icon').classList.toggle('hidden', isFs);
     document.querySelector('.exit-fs-icon').classList.toggle('hidden', !isFs);
+    if (isFs) {
+        setTimeout(autoFitCamera, 100);
+    }
 });
 
 document.getElementById('themeToggleBtn').addEventListener('click', () => {
@@ -311,10 +433,7 @@ document.getElementById('themeToggleBtn').addEventListener('click', () => {
 });
 
 document.getElementById('recenterBtn').addEventListener('click', () => {
-    state.pan = { x: 50, y: 50 };
-    state.zoom = 1.0;
-    document.getElementById('sliderZoom').value = 1.0;
-    document.getElementById('valZoom').innerText = '1.0x';
+    autoFitCamera();
 });
 
 document.getElementById('arrangeBtn').addEventListener('click', () => {
@@ -322,9 +441,13 @@ document.getElementById('arrangeBtn').addEventListener('click', () => {
 });
 
 // Settings Toggles
+document.getElementById('toggleCometPaths').addEventListener('change', (e) => {
+    state.showCometPaths = e.target.checked;
+});
+
 document.getElementById('toggleAutoRotate').addEventListener('change', (e) => {
     state.autoRotate = e.target.checked;
-    state.modeTimer = 0; // Reset timer when toggled
+    state.modeTimer = 0; 
     document.getElementById('rotateIntervalContainer').classList.toggle('hidden', !state.autoRotate);
 });
 
@@ -342,6 +465,71 @@ document.getElementById('toggleExplanations').addEventListener('change', (e) => 
     state.showExplanations = e.target.checked;
 });
 
+document.getElementById('toggleFacts').addEventListener('change', (e) => {
+    state.showFacts = e.target.checked;
+    document.getElementById('factIntervalContainer').classList.toggle('hidden', !state.showFacts);
+    const bubble = document.getElementById('factBubble');
+    
+    if (state.showFacts) {
+        bubble.classList.remove('hidden');
+        document.getElementById('factText').innerText = FACTS[state.factIdx];
+        
+        setTimeout(() => {
+            bubble.classList.remove('opacity-0', 'scale-95');
+            bubble.classList.add('opacity-100', 'scale-100');
+        }, 50);
+        state.factTimer = 0;
+    } else {
+        bubble.classList.remove('opacity-100', 'scale-100');
+        bubble.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => bubble.classList.add('hidden'), 500); 
+    }
+});
+
+document.getElementById('sliderFactInterval').addEventListener('input', (e) => {
+    state.factInterval = parseInt(e.target.value);
+    document.getElementById('valFactInterval').innerText = state.factInterval + 's';
+});
+
+const autoFitCamera = () => {
+    let minX = 30, maxX = ENFORCER_X + 60, minY = 100, maxY = 900; 
+
+    state.namespaces.forEach(ns => {
+        if (ns.x < minX) minX = ns.x;
+        if (ns.x + ns.w > maxX) maxX = ns.x + ns.w;
+        if (ns.y < minY) minY = ns.y;
+        if (ns.y + ns.h > maxY) maxY = ns.y + ns.h;
+    });
+
+    // Make sure we include on-prem bounds
+    state.onPremNodes.forEach(op => {
+        if (op.y + 100 > maxY) maxY = op.y + 100;
+    });
+
+    const padding = 80;
+    const contentW = (maxX - minX) + padding * 2;
+    const contentH = (maxY - minY) + padding * 2;
+
+    const zoomX = window.innerWidth / contentW;
+    const zoomY = window.innerHeight / contentH;
+    let newZoom = Math.min(zoomX, zoomY);
+    newZoom = Math.max(0.4, Math.min(newZoom, 3.0)); 
+
+    const centerX = minX + (maxX - minX) / 2;
+    const centerY = minY + (maxY - minY) / 2;
+
+    state.zoom = newZoom;
+    state.pan.x = window.innerWidth / 2 - centerX * state.zoom;
+    state.pan.y = window.innerHeight / 2 - centerY * state.zoom;
+
+    const zoomSlider = document.getElementById('sliderZoom');
+    const zoomVal = document.getElementById('valZoom');
+    if (zoomSlider && zoomVal) {
+        zoomSlider.value = state.zoom;
+        zoomVal.innerText = state.zoom.toFixed(1) + 'x';
+    }
+};
+
 const autoArrangeLayout = () => {
     let cy = 80;
     state.namespaces.forEach(ns => {
@@ -350,6 +538,7 @@ const autoArrangeLayout = () => {
         cy += ns.h + 40;
         packNodes(ns);
     });
+    autoFitCamera();
 };
 
 const bindSlider = (id, valId, stateKey, parser) => {
@@ -359,11 +548,13 @@ const bindSlider = (id, valId, stateKey, parser) => {
         const val = parser(e.target.value);
         state[stateKey] = val;
         valEl.innerText = stateKey === 'zoom' ? val.toFixed(1) + 'x' : val;
-        if (stateKey === 'nsCount' || stateKey === 'podCount') provisionCluster();
+        if (['nsCount', 'podCount', 'onPremCount', 'providerCount'].includes(stateKey)) provisionCluster();
     });
 };
 bindSlider('sliderNs', 'valNs', 'nsCount', parseInt);
 bindSlider('sliderPods', 'valPods', 'podCount', parseInt);
+bindSlider('sliderProviders', 'valProviders', 'providerCount', parseInt);
+bindSlider('sliderOnPrem', 'valOnPrem', 'onPremCount', parseInt);
 
 document.getElementById('sliderZoom').addEventListener('input', (e) => {
     const newZoom = parseFloat(e.target.value);
@@ -381,7 +572,9 @@ document.getElementById('sliderZoom').addEventListener('input', (e) => {
 const buildModeUI = () => {
     const container = document.getElementById('modeContainer');
     container.innerHTML = '';
-    Object.values(MODES).forEach(m => {
+    const currentModes = getModes();
+    
+    Object.values(currentModes).forEach(m => {
         const isActive = state.mode === m.id;
         const btn = document.createElement('button');
         btn.className = `mode-btn relative px-8 py-4 rounded-xl flex flex-col items-center gap-2 border ${isActive ? 'active' : ''}`;
@@ -395,13 +588,13 @@ const buildModeUI = () => {
         if(m.id === 'protect') iconSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`;
 
         btn.innerHTML = `
-            <div class="${isActive ? 'drop-shadow-[0_0_8px_' + m.color + ']' : ''}">${iconSvg}</div>
-            <span class="font-bold text-sm uppercase tracking-wider" style="color: ${isActive ? m.color : ''}">${m.name} Mode</span>
+            <div class="${isActive ? 'drop-shadow-[0_0_8px_' + m.color + ']' : ''} transition-colors">${iconSvg}</div>
+            <span class="font-bold text-sm uppercase tracking-wider transition-colors" style="color: ${isActive ? m.color : ''}">${m.name} Mode</span>
             ${isActive ? `<div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-1 rounded-full" style="background-color: ${m.color}"></div>` : ''}
         `;
         btn.onclick = () => { 
             state.mode = m.id; 
-            state.modeTimer = 0; // Reset timer if clicked manually
+            state.modeTimer = 0; 
             buildModeUI(); 
         };
         container.appendChild(btn);
@@ -422,7 +615,7 @@ const packNodes = (ns) => {
     const nsNodes = state.nodes.filter(n => n.nsId === ns.id);
     if (!nsNodes.length) return;
 
-    const POD_W = 140, POD_H = 70;
+    const POD_W = 170, POD_H = 70;
     const GAP_X = 20, GAP_Y = 20;
 
     let cols = Math.floor((ns.w - GAP_X) / (POD_W + GAP_X));
@@ -443,6 +636,9 @@ const packNodes = (ns) => {
 const provisionCluster = () => {
     state.namespaces = [];
     state.nodes = [];
+    state.onPremNodes = [];
+    
+    // Internal Pods & Namespaces
     const podsPerNs = Array(state.nsCount).fill(0);
     for (let i = 0; i < state.podCount; i++) podsPerNs[i % state.nsCount]++;
 
@@ -452,7 +648,7 @@ const provisionCluster = () => {
         const count = podsPerNs[i];
         const cols = Math.max(1, Math.ceil(Math.sqrt(count)));
         const rows = Math.max(1, Math.ceil(count / cols));
-        const w = Math.max(200, cols * 160 + 40);
+        const w = Math.max(220, cols * 190 + 40);
         const h = Math.max(120, rows * 90 + 50);
 
         state.namespaces.push({ id: i, x: 750, y: cy, w, h, name: tpl.name, color: tpl.color });
@@ -470,6 +666,20 @@ const provisionCluster = () => {
     }
 
     state.namespaces.forEach(packNodes);
+    
+    // On-Premise Nodes Setup
+    const opLabels = ['On-Prem DB', 'Legacy API', 'Local Server', 'Headquarters', 'Branch Office'];
+    for (let i = 0; i < state.onPremCount; i++) {
+        state.onPremNodes.push({
+            id: `onprem-${i}`,
+            x: START_X,
+            y: 650 + i * 110, // Below the internet node
+            label: opLabels[i % opLabels.length] + (i >= opLabels.length ? ` ${i+1}` : ''),
+            ip: `192.168.100.${10 + i}`
+        });
+    }
+
+    setTimeout(autoFitCamera, 50); 
 };
 provisionCluster();
 
@@ -517,7 +727,7 @@ canvas.addEventListener('mousedown', e => {
     const pos = getMousePos(e);
     for(let i = state.nodes.length-1; i>=0; i--) {
         const n = state.nodes[i];
-        if(pos.x > n.x - 70 && pos.x < n.x + 70 && pos.y > n.y - 35 && pos.y < n.y + 35) {
+        if(pos.x > n.x - 85 && pos.x < n.x + 85 && pos.y > n.y - 35 && pos.y < n.y + 35) {
             state.drag = { type: 'node', id: n.id, ox: pos.x - n.x, oy: pos.y - n.y };
             return;
         }
@@ -549,7 +759,6 @@ window.addEventListener('mousemove', e => {
         const n = state.nodes.find(n => n.id === state.drag.id);
         if(n) { 
             let nx = pos.x - state.drag.ox;
-            // Mathematical Boundary: Prevent drag past DPI Barrier
             if (nx < ENFORCER_X + 110) nx = ENFORCER_X + 110;
             n.x = nx; 
             n.y = pos.y - state.drag.oy; 
@@ -559,7 +768,6 @@ window.addEventListener('mousemove', e => {
         if(ns) {
             let dx = (pos.x - state.drag.ox) - ns.x;
             const dy = (pos.y - state.drag.oy) - ns.y;
-            // Mathematical Boundary: Prevent namespace drag past DPI Barrier
             if (ns.x + dx < ENFORCER_X + 40) dx = (ENFORCER_X + 40) - ns.x;
             
             ns.x += dx; ns.y += dy;
@@ -603,10 +811,19 @@ const spawnPacket = () => {
     const rand = Math.random();
     let type = 'inbound', srcNodeId = null, dstNodeId = null, srcIp = '', dstIp = '', srcPort = 0, dstPort = 0;
 
+    // Use On-Prem Node occasionally if available
+    const useInternet = Math.random() > 0.5 || state.onPremNodes.length === 0;
+    let extX = START_X, extY = 500, extIp = getExtIp();
+    
+    if (!useInternet && state.onPremNodes.length > 0) {
+        const op = state.onPremNodes[Math.floor(Math.random() * state.onPremNodes.length)];
+        extX = op.x; extY = op.y; extIp = op.ip;
+    }
+
     if (rand > 0.65) {
         type = 'outbound';
         const n = state.nodes[Math.floor(Math.random() * state.nodes.length)];
-        srcNodeId = n.id; srcIp = n.ip; srcPort = n.port; dstIp = getExtIp(); dstPort = 443;
+        srcNodeId = n.id; srcIp = n.ip; srcPort = n.port; dstIp = extIp; dstPort = 443;
     } else if (rand > 0.35 && state.nodes.length > 1) {
         type = 'east-west';
         const s = [...state.nodes].sort(()=>0.5-Math.random());
@@ -616,13 +833,13 @@ const spawnPacket = () => {
     } else {
         type = 'inbound';
         const n = state.nodes[Math.floor(Math.random() * state.nodes.length)];
-        dstNodeId = n.id; srcIp = getExtIp(); srcPort = Math.floor(Math.random()*50000)+1024;
+        dstNodeId = n.id; srcIp = extIp; srcPort = Math.floor(Math.random()*50000)+1024;
         dstIp = n.ip; dstPort = n.port;
     }
 
     state.packets.push({
         id: Math.random(), type, progress: 0, malicious: isMalicious,
-        srcNodeId, dstNodeId, srcIp, dstIp, srcPort, dstPort,
+        srcNodeId, dstNodeId, srcIp, dstIp, srcPort, dstPort, extX, extY,
         speed: 0.002 + Math.random() * 0.0015, state: 'moving', handled: false, pos: {x:0, y:0}, angle: 0,
         reason: isMalicious ? BLOCK_REASONS[Math.floor(Math.random() * BLOCK_REASONS.length)] : ''
     });
@@ -676,7 +893,7 @@ const drawGlobe = (x, y, th) => {
 };
 
 const drawEnforcer = (time, th) => {
-    const M = MODES[state.mode];
+    const M = getModes()[state.mode];
     const yOffset = 500;
 
     ctx.save();
@@ -712,16 +929,14 @@ const drawEnforcer = (time, th) => {
     }
     ctx.restore();
 
-    // NeuVector DPI Title (Moved up with a solid background box)
     ctx.font = 'bold 16px monospace'; 
     const titleText = 'NeuVector DPI';
     const textW = ctx.measureText(titleText).width;
     const boxW = textW + 24;
     const boxH = 30;
     const boxX = ENFORCER_X - boxW / 2;
-    const boxY = yOffset - 115; // Moved up
+    const boxY = yOffset - 115;
     
-    // Draw background box to hide the vertical line
     ctx.fillStyle = th.internetBg; 
     ctx.strokeStyle = M.color; 
     ctx.lineWidth = 2;
@@ -738,6 +953,7 @@ const drawEnforcer = (time, th) => {
 
 const render = (time) => {
     const th = getTheme();
+    const M = getModes()[state.mode];
 
     ctx.setTransform(1, 0, 0, 1, 0, 0); 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -745,10 +961,14 @@ const render = (time) => {
 
     // 1. Draw Paths (Wireframes)
     ctx.strokeStyle = th.wireframe; ctx.lineWidth = 2; ctx.setLineDash([4, 6]); ctx.globalAlpha = 0.5;
+    
+    // Internet to internal
     state.nodes.forEach(n => {
         ctx.beginPath(); ctx.moveTo(START_X, 500); 
         ctx.bezierCurveTo((START_X+n.x)/2, 500, (START_X+n.x)/2, n.y, n.x, n.y); ctx.stroke();
     });
+    
+    // East-West Internal
     for(let i=0; i<state.nodes.length; i++) {
         for(let j=i+1; j<state.nodes.length; j++) {
             const n1 = state.nodes[i], n2 = state.nodes[j];
@@ -759,11 +979,37 @@ const render = (time) => {
     }
     ctx.setLineDash([]); ctx.globalAlpha = 1.0;
 
-    // 2. Providers
-    const providers = [{ x: 50, y: 300, label: 'API Server A' }, { x: 30, y: 430, label: 'Datacenter' }, { x: 30, y: 570, label: 'API Server B' }, { x: 50, y: 700, label: 'Remote Office' }];
+    // 1b. Draw On-Premise Wireframes (fainter)
+    ctx.strokeStyle = th.wireframe; ctx.lineWidth = 1.5; ctx.setLineDash([2, 4]); ctx.globalAlpha = 0.3;
+    state.onPremNodes.forEach(op => {
+        state.nodes.forEach(node => {
+            ctx.beginPath(); ctx.moveTo(op.x, op.y);
+            ctx.bezierCurveTo((op.x + node.x)/2, op.y, (op.x + node.x)/2, node.y, node.x, node.y);
+            ctx.stroke();
+        });
+    });
+    ctx.setLineDash([]); ctx.globalAlpha = 1.0;
+
+    // 2. Dynamic External Providers (Internet)
+    const pCount = state.providerCount;
+    const pLabels = ['API Server', 'Datacenter', 'Remote Office', 'Partner API', 'Cloud VPC', 'Edge Node'];
+    const providers = [];
+    const maxH = Math.min(800, canvas.height - 200);
+    const stepY = Math.min(120, maxH / Math.max(1, pCount - 1));
+    const startY = 500 - ((pCount - 1) * stepY) / 2;
+
+    for (let i = 0; i < pCount; i++) {
+        providers.push({
+            x: 50 + (i % 2 === 0 ? 0 : -20),
+            y: startY + i * stepY,
+            label: pLabels[i % pLabels.length] + (i >= pLabels.length ? ` ${i+1}` : '')
+        });
+    }
+
     ctx.strokeStyle = th.internetBorder; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); ctx.globalAlpha = 0.6;
     providers.forEach(p => { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(START_X, 500); ctx.stroke(); });
     ctx.setLineDash([]); ctx.globalAlpha = 1.0;
+    
     providers.forEach(p => {
         ctx.save(); ctx.translate(p.x, p.y);
         ctx.fillStyle = th.internetBg; ctx.strokeStyle = th.internetBorder; ctx.lineWidth = 2;
@@ -787,28 +1033,47 @@ const render = (time) => {
     ctx.fillStyle = th.textMain; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
     ctx.fillText('INTERNET', START_X, 580);
 
+    // 2c. Render On-Premise Source Nodes
+    state.onPremNodes.forEach(op => {
+        ctx.save(); ctx.translate(op.x, op.y);
+        ctx.fillStyle = th.internetBg; ctx.strokeStyle = th.internetBorder; ctx.lineWidth = 2;
+        drawRoundedRect(ctx, -45, -35, 90, 70, 12); ctx.fill(); ctx.stroke();
+        
+        // Draw Server Rack Icon
+        ctx.beginPath();
+        ctx.rect(-15, -20, 30, 10); ctx.rect(-15, -5, 30, 10); ctx.rect(-15, 10, 30, 10);
+        ctx.stroke();
+        ctx.fillStyle = th.textMuted;
+        ctx.beginPath(); ctx.arc(-8, -15, 2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-8, 0, 2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-8, 15, 2, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+
+        ctx.fillStyle = th.textMain; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText(op.label, op.x, op.y + 55);
+        ctx.fillStyle = th.textMuted; ctx.font = '10px monospace';
+        ctx.fillText(op.ip, op.x, op.y + 70);
+    });
+
     drawEnforcer(time, th);
 
-    // 3. Explanation Tooltip (if toggled)
+    // 3. Explanation Tooltip
     if (state.showExplanations) {
-        const m = MODES[state.mode];
         ctx.font = 'bold 14px sans-serif';
-        const tw = ctx.measureText(m.desc).width;
+        const tw = ctx.measureText(M.desc).width;
         const bw = tw + 40;
         const bh = 50;
         const boxX = ENFORCER_X - bw - 60;
-        const boxY = 150; // Moved to top part of the screen
+        const boxY = 150; 
 
-        // Arrow
         ctx.beginPath();
         ctx.moveTo(boxX + bw, boxY + bh / 2);
         ctx.lineTo(ENFORCER_X - 35, boxY + bh / 2);
-        ctx.strokeStyle = m.color;
+        ctx.strokeStyle = M.color;
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Arrow Head
-        ctx.fillStyle = m.color;
+        ctx.fillStyle = M.color;
         ctx.beginPath();
         ctx.moveTo(ENFORCER_X - 35, boxY + bh / 2);
         ctx.lineTo(ENFORCER_X - 45, boxY + bh / 2 - 5);
@@ -816,30 +1081,53 @@ const render = (time) => {
         ctx.closePath();
         ctx.fill();
 
-        // Background Box
         ctx.fillStyle = th.boxBgSolid;
-        ctx.strokeStyle = m.color;
+        ctx.strokeStyle = M.color;
         ctx.lineWidth = 2;
         drawRoundedRect(ctx, boxX, boxY, bw, bh, 8);
         ctx.fill(); ctx.stroke();
 
-        ctx.fillStyle = m.color;
+        ctx.fillStyle = M.color;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(m.desc, boxX + bw / 2, boxY + bh / 2 + 1);
+        ctx.fillText(M.desc, boxX + bw / 2, boxY + bh / 2 + 1);
     }
 
     state.namespaces.forEach(ns => {
         const isDragging = state.drag && (state.drag.id === ns.id) && (state.drag.type==='ns' || state.drag.type==='ns-resize');
+        
         ctx.fillStyle = ns.color; ctx.globalAlpha = isDragging ? 0.08 : 0.03;
         drawRoundedRect(ctx, ns.x, ns.y, ns.w, ns.h, 20); ctx.fill();
         ctx.strokeStyle = ns.color; ctx.globalAlpha = isDragging ? 0.6 : 0.3;
         ctx.lineWidth = 2; ctx.setLineDash([8, 4]); ctx.stroke(); ctx.setLineDash([]);
         
-        ctx.globalAlpha = 0.8; ctx.textAlign = 'center'; ctx.font = 'bold 11px sans-serif'; ctx.letterSpacing = '2px';
-        ctx.textBaseline = 'alphabetic';
-        ctx.fillText(`${ns.name} NS`.toUpperCase(), ns.x + ns.w/2, ns.y - 10);
-        drawRoundedRect(ctx, ns.x + ns.w/2 - 20, ns.y - 20, 40, 4, 2); ctx.fill();
+        // Solid pill for title to hide the border line passing behind
+        ctx.globalAlpha = 1.0; 
+        ctx.font = 'bold 11px sans-serif'; 
+        const nsTitle = `${ns.name} NS`.toUpperCase();
+        const textW = ctx.measureText(nsTitle).width;
+        const pillW = textW + 32;
+        const pillH = 22;
+        const pillX = ns.x + ns.w/2 - pillW/2;
+        const pillY = ns.y - pillH/2; 
+
+        // Use the exact background color to blend seamlessly with the canvas
+        ctx.fillStyle = state.isDark ? '#030712' : '#f8fafc';
+        ctx.strokeStyle = ns.color;
+        ctx.lineWidth = 1.5;
+        
+        drawRoundedRect(ctx, pillX, pillY, pillW, pillH, 11);
+        ctx.fill(); // Erases the dashed line behind
+        
+        ctx.globalAlpha = isDragging ? 0.9 : 0.6; // Slight transparency only for the pill's border
+        ctx.stroke();
+
+        // Draw perfectly centered text on top
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = ns.color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(nsTitle, ns.x + ns.w/2, ns.y + 1);
         
         ctx.globalAlpha = isDragging ? 1.0 : 0.5; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
         ctx.beginPath(); ctx.moveTo(ns.x+ns.w-15, ns.y+ns.h-5); ctx.lineTo(ns.x+ns.w-5, ns.y+ns.h-15); ctx.stroke();
@@ -850,35 +1138,75 @@ const render = (time) => {
     state.nodes.forEach(n => {
         const isDragging = state.drag && state.drag.id === n.id && state.drag.type === 'node';
         if(isDragging) {
-            ctx.shadowColor = '#06b6d4'; ctx.shadowBlur = 20; ctx.fillStyle = 'rgba(6,182,212,0.2)';
-            drawRoundedRect(ctx, n.x-75, n.y-40, 150, 80, 16); ctx.fill(); ctx.shadowBlur = 0;
+            ctx.shadowColor = state.appTheme === 'suse' ? '#30ba78' : '#06b6d4'; ctx.shadowBlur = 20; 
+            ctx.fillStyle = state.appTheme === 'suse' ? 'rgba(48, 186, 120, 0.2)' : 'rgba(6,182,212,0.2)';
+            drawRoundedRect(ctx, n.x-90, n.y-40, 180, 80, 16); ctx.fill(); ctx.shadowBlur = 0;
         }
-        ctx.fillStyle = th.nodeBg; ctx.strokeStyle = th.nodeBorder; ctx.lineWidth = 2;
-        drawRoundedRect(ctx, n.x-70, n.y-35, 140, 70, 12); ctx.fill(); ctx.stroke();
         
-        // Aligned Icon & Text Fix
-        drawPodIcon(ctx, n.x - 45, n.y - 10, 14, th);
+        ctx.fillStyle = th.nodeBg; ctx.strokeStyle = th.nodeBorder; ctx.lineWidth = 2;
+        drawRoundedRect(ctx, n.x-85, n.y-35, 170, 70, 12); ctx.fill(); ctx.stroke();
+        
+        drawPodIcon(ctx, n.x - 55, n.y - 10, 14, th);
+        
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         
         ctx.fillStyle = th.nodeText1; ctx.font = 'bold 13px sans-serif'; ctx.letterSpacing = '0px';
-        ctx.fillText(n.label, n.x - 20, n.y - 14);
+        ctx.fillText(n.label, n.x - 25, n.y - 14);
         
         ctx.fillStyle = th.nodeText2; ctx.font = '10px monospace';
-        ctx.fillText(`IP: ${n.ip}`, n.x - 20, n.y + 3);
-        ctx.fillText(`Port: ${n.port}`, n.x - 20, n.y + 17);
+        ctx.fillText(`IP: ${n.ip}`, n.x - 25, n.y + 3);
+        ctx.fillText(`Port: ${n.port}`, n.x - 25, n.y + 17);
         
         ctx.fillStyle = '#10b981'; ctx.shadowColor = '#10b981'; ctx.shadowBlur = 10;
-        ctx.beginPath(); ctx.arc(n.x+55, n.y-20, 5, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+        ctx.beginPath(); ctx.arc(n.x+65, n.y-20, 5, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
     });
 
     state.packets.forEach(p => {
         if (!p.pos || p.pos.x === undefined) return;
-        let color = p.malicious ? '#ef4444' : '#10b981';
+        
+        let color = p.malicious ? '#ef4444' : '#10b981'; 
         if (p.handled && state.mode === 'monitor' && p.malicious) color = '#f59e0b';
+        if (p.handled && state.mode === 'discover' && !p.malicious) {
+            color = state.appTheme === 'suse' ? '#30ba78' : '#06b6d4';
+        }
+        
+        if (state.showCometPaths) {
+            const srcNode = state.nodes.find(n => n.id === p.srcNodeId);
+            const dstNode = state.nodes.find(n => n.id === p.dstNodeId);
+            
+            if ((p.type === 'inbound' && dstNode) || (p.type === 'outbound' && srcNode) || (p.type === 'east-west' && srcNode && dstNode)) {
+                ctx.save();
+                ctx.beginPath();
+                if (p.type === 'inbound') {
+                    ctx.moveTo(p.extX, p.extY);
+                    ctx.bezierCurveTo((p.extX+dstNode.x)/2, p.extY, (p.extX+dstNode.x)/2, dstNode.y, dstNode.x, dstNode.y);
+                } else if (p.type === 'outbound') {
+                    ctx.moveTo(srcNode.x, srcNode.y);
+                    ctx.bezierCurveTo((srcNode.x+p.extX)/2, srcNode.y, (srcNode.x+p.extX)/2, p.extY, p.extX, p.extY);
+                } else if (p.type === 'east-west') {
+                    ctx.moveTo(srcNode.x, srcNode.y);
+                    ctx.quadraticCurveTo(ENFORCER_X - 100, (srcNode.y + dstNode.y) / 2, dstNode.x, dstNode.y);
+                }
+                
+                const pulse = (Math.sin(time / 150 - p.progress * 10) + 1) / 2;
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2 + pulse * 2;
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 5 + pulse * 10;
+                ctx.globalAlpha = 0.3 + pulse * 0.5;
+                
+                ctx.setLineDash([15, 15]);
+                ctx.lineDashOffset = -time / 20; 
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
         ctx.save(); ctx.translate(p.pos.x, p.pos.y); ctx.rotate(p.angle);
         const grad = ctx.createLinearGradient(-60, 0, 0, 0); grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(1, color);
         ctx.fillStyle = grad; ctx.globalAlpha = 0.8; ctx.fillRect(-60, -3, 60, 6); ctx.restore();
+        
         ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 15;
         ctx.beginPath(); ctx.arc(p.pos.x, p.pos.y, 8, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
         
@@ -896,7 +1224,11 @@ const render = (time) => {
     ctx.globalAlpha = 1.0; ctx.shadowBlur = 0;
 
     state.texts.forEach(t => {
-        let color = t.type === 'discover' ? '#06b6d4' : (t.type === 'monitor' ? '#f59e0b' : '#ef4444');
+        let color = '#fff';
+        if (t.type === 'discover') color = state.appTheme === 'suse' ? '#30ba78' : '#06b6d4';
+        else if (t.type === 'monitor') color = '#f59e0b';
+        else if (t.type === 'protect') color = '#ef4444';
+
         ctx.globalAlpha = t.life; ctx.font = 'bold 13px sans-serif';
         const tw = ctx.measureText(t.text).width, bw = tw + 30, bh = 30;
         ctx.fillStyle = th.boxBgSolid; ctx.strokeStyle = color; ctx.lineWidth = 1.5;
@@ -913,7 +1245,6 @@ const loop = (time) => {
     state.lastTime = time;
     state.packetTimer += dt;
     
-    // Process Auto-Rotate
     if (state.autoRotate) {
         state.modeTimer += dt;
         if (state.modeTimer > state.rotateInterval * 1000) { 
@@ -925,46 +1256,75 @@ const loop = (time) => {
         }
     }
 
+    if (state.showFacts) {
+        state.factTimer += dt;
+        if (state.factTimer > state.factInterval * 1000) { 
+            state.factTimer = 0;
+            const bubble = document.getElementById('factBubble');
+            
+            bubble.classList.remove('opacity-100', 'scale-100');
+            bubble.classList.add('opacity-0', 'scale-95');
+            
+            setTimeout(() => {
+                state.factIdx = (state.factIdx + 1) % FACTS.length;
+                document.getElementById('factText').innerText = FACTS[state.factIdx];
+                bubble.classList.remove('opacity-0', 'scale-95');
+                bubble.classList.add('opacity-100', 'scale-100');
+            }, 500);
+        }
+    }
+
     if (state.packetTimer > 700) { state.packetTimer = 0; spawnPacket(); }
     for (let i = 0; i < state.packets.length; i++) {
         let p = state.packets[i]; if (p.state === 'blocked') continue;
         p.progress += p.speed;
         const srcNode = state.nodes.find(n => n.id === p.srcNodeId), dstNode = state.nodes.find(n => n.id === p.dstNodeId);
         let p0, p1, p2, p3, crossed = false, valid = false;
+        
         if (p.type === 'inbound' && dstNode) {
-            p0 = { x: START_X, y: 500 }; p3 = { x: dstNode.x, y: dstNode.y };
+            p0 = { x: p.extX, y: p.extY }; p3 = { x: dstNode.x, y: dstNode.y };
             p.pos = bezier(p.progress, p0, {x: (p0.x+p3.x)/2, y: p0.y}, {x: (p0.x+p3.x)/2, y: p3.y}, p3);
             if (p.pos.x >= ENFORCER_X) crossed = true; valid = true;
         } else if (p.type === 'outbound' && srcNode) {
-            p0 = { x: srcNode.x, y: srcNode.y }; p3 = { x: START_X, y: 500 };
+            p0 = { x: srcNode.x, y: srcNode.y }; p3 = { x: p.extX, y: p.extY };
             p.pos = bezier(p.progress, p0, {x: (p0.x+p3.x)/2, y: p0.y}, {x: (p0.x+p3.x)/2, y: p3.y}, p3);
             if (p.pos.x <= ENFORCER_X) crossed = true; valid = true;
         } else if (p.type === 'east-west' && srcNode && dstNode) {
             p0 = { x: srcNode.x, y: srcNode.y }; p2 = { x: dstNode.x, y: dstNode.y }; p1 = { x: ENFORCER_X - 100, y: (p0.y + p2.y) / 2 };
             p.pos = quad(p.progress, p0, p1, p2); if (p.progress >= 0.5) crossed = true; valid = true;
         }
+        
         if (!valid) { p.state = 'blocked'; continue; }
+        
         if(p.progress > 0.01 && p.pos) {
-            let nextPos = p.type === 'east-west' ? quad(p.progress+0.01, p0, p1, p2) : bezier(p.progress+0.01, p0, {x: (p0.x+p3.x)/2, y: p0.y}, {x: (p0.x+p3.x)/2, y: p3.y}, p3);
+            let nextPos;
+            if (p.type === 'east-west') {
+                nextPos = quad(p.progress+0.01, p0, p1, p2);
+            } else if (p.type === 'inbound') {
+                nextPos = bezier(p.progress+0.01, p0, {x: (p0.x+p3.x)/2, y: p0.y}, {x: (p0.x+p3.x)/2, y: p3.y}, p3);
+            } else {
+                nextPos = bezier(p.progress+0.01, p0, {x: (p0.x+p3.x)/2, y: p0.y}, {x: (p0.x+p3.x)/2, y: p3.y}, p3);
+            }
             p.angle = Math.atan2(nextPos.y - p.pos.y, nextPos.x - p.pos.x);
         }
+        
         if (!p.handled && crossed && p.pos) {
             p.handled = true;
-            state.stats.monitored++; // Increment total monitored traffic
+            state.stats.monitored++;
             
             if (state.mode === 'discover' && !p.malicious && Math.random() > 0.5) {
                 state.texts.push({ id: Math.random(), x: ENFORCER_X, y: p.pos.y - 40, text: 'Rule Learned', type: 'discover', life: 1.0 });
-                state.stats.rules++; // Increment learned rules
+                state.stats.rules++;
             }
             else if (state.mode === 'monitor' && p.malicious) {
                 state.texts.push({ id: Math.random(), x: ENFORCER_X, y: p.pos.y - 40, text: `Alert: ${p.reason}`, type: 'monitor', life: 1.0 });
-                state.stats.alerts++; // Increment alerts
+                state.stats.alerts++;
             }
             else if (state.mode === 'protect' && p.malicious) { 
                 p.state = 'blocked'; 
                 state.texts.push({ id: Math.random(), x: ENFORCER_X - 40, y: p.pos.y - 40, text: `Blocked: ${p.reason}`, type: 'protect', life: 1.0 }); 
                 spawnExplosion(p.pos.x, p.pos.y); 
-                state.stats.blocked++; // Increment blocked attacks
+                state.stats.blocked++;
             }
         }
     }
@@ -974,7 +1334,6 @@ const loop = (time) => {
     state.texts.forEach(t => { t.y -= 1.2; t.life -= 0.015; });
     state.texts = state.texts.filter(t => t.life > 0);
     
-    // Update DOM Stats Counters efficiently
     if (state.showStats) {
         document.getElementById('countRules').innerText = state.stats.rules.toLocaleString();
         document.getElementById('countMonitored').innerText = state.stats.monitored.toLocaleString();
