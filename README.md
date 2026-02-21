@@ -4,6 +4,6 @@ An interactive educational tool demonstrating NeuVector's Deep Packet Inspection
 
 Built just for fun.
 
-## See it live at https://doccaz.github.com/neuvector-visualizer
+## See it live at https://doccaz.github.io/neuvector-visualizer
 
 
